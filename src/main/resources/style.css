@@ -140,6 +140,34 @@
     -fx-background-color: #45475a;
 }
 
+.button-danger {
+    -fx-background-color: linear-gradient(to right, #f38ba8, #eba0ac);
+    -fx-text-fill: #11111b;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px 20px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(243, 139, 168, 0.3), 5, 0, 0, 2);
+}
+
+.button-danger:hover {
+    -fx-background-color: linear-gradient(to right, #eba0ac, #f38ba8);
+    -fx-effect: dropshadow(three-pass-box, rgba(243, 139, 168, 0.5), 8, 0, 0, 3);
+}
+
+.button-danger:pressed {
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+.button-danger:disabled {
+    -fx-background-color: #313244;
+    -fx-text-fill: #585b70;
+    -fx-opacity: 0.6;
+    -fx-effect: none;
+    -fx-cursor: default;
+}
+
 /* Radio Button Styling */
 .radio-button {
     -fx-text-fill: #cdd6f4;
@@ -208,3 +236,19 @@
 .scroll-bar:vertical .thumb:hover, .scroll-bar:horizontal .thumb:hover {
     -fx-background-color: #585b70;
 }
+
+/* Drag and Drop visual feedback */
+.card.drag-over {
+    -fx-border-color: #89b4fa;
+    -fx-border-width: 2px;
+    -fx-border-style: dashed;
+    -fx-border-radius: 10px;
+    -fx-background-color: #2e2e48;
+}
+
+.text-field.drag-over {
+    -fx-border-color: #89b4fa;
+    -fx-border-width: 2px;
+    -fx-border-style: dashed;
+}
+

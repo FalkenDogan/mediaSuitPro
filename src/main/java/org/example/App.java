@@ -5,8 +5,11 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -40,9 +43,12 @@ public class App extends Application {
     private RadioButton rbScript;
     private RadioButton rbImage;
     private Button downloadButton;
+    private Button downloadStopButton;
     private ProgressBar progressBar;
     private Label statusLabel;
     private TextArea logArea;
+    private volatile Process currentDownloadProcess;
+    private volatile boolean downloadCancelled = false;
 
     // Tab 2 Controls (Trimmer)
     private TextField filePathField;
@@ -51,8 +57,11 @@ public class App extends Application {
     private TextField endTimeField;
     private CheckBox trimToMp4CheckBox;
     private Button trimButton;
+    private Button trimStopButton;
     private Label trimStatusLabel;
     private TextArea trimLogArea;
+    private volatile Process currentTrimProcess;
+    private volatile boolean trimCancelled = false;
 
     // Tab 3 Controls (Converter)
     private TextField convFilePathField;
@@ -62,9 +71,12 @@ public class App extends Application {
     private RadioButton rbConvWebm;
     private RadioButton rbConvWav;
     private Button convButton;
+    private Button convStopButton;
     private ProgressBar convProgressBar;
     private Label convStatusLabel;
     private TextArea convLogArea;
+    private volatile Process currentConvProcess;
+    private volatile boolean convCancelled = false;
 
     public static void main(String[] args) {
         launch(args);
@@ -138,6 +150,13 @@ public class App extends Application {
 
         downloadButton = new Button("Start Download");
         downloadButton.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(downloadButton, Priority.ALWAYS);
+
+        downloadStopButton = new Button("⏹ Stop");
+        downloadStopButton.getStyleClass().add("button-danger");
+        downloadStopButton.setDisable(true);
+
+        HBox dlButtonBox = new HBox(10, downloadButton, downloadStopButton);
 
         progressBar = new ProgressBar(0.0);
         progressBar.setMaxWidth(Double.MAX_VALUE);
@@ -160,7 +179,7 @@ public class App extends Application {
                 dlCardTitle,
                 urlLabel, linkField,
                 typeLabel, typeBox,
-                downloadButton,
+                dlButtonBox,
                 progressBar,
                 statusBox,
                 logArea
@@ -168,6 +187,8 @@ public class App extends Application {
         dlContainer.getChildren().add(dlCard);
         scrollDownload.setContent(dlContainer);
         tabDownload.setContent(scrollDownload);
+        enableUrlDragAndDrop(linkField);
+        enableUrlDragAndDrop(dlCard);
 
         // ==================== TAB 2: CUTTER/TRIMMER ====================
         Tab tabCut = new Tab("Media Cutter (Trimmer)");
@@ -183,12 +204,12 @@ public class App extends Application {
         Label cutCardTitle = new Label("Media Cutting & Trimming Panel");
         cutCardTitle.getStyleClass().add("title-label");
 
-        Label fileLabel = new Label("Select Media File:");
+        Label fileLabel = new Label("Select Media File (Drag & Drop supported):");
         fileLabel.getStyleClass().add("form-label");
 
         filePathField = new TextField();
         filePathField.setEditable(false);
-        filePathField.setPromptText("Choose a video or audio file from your local storage...");
+        filePathField.setPromptText("Drag & drop a video/audio file here or click Browse...");
 
         browseButton = new Button("Browse File");
         browseButton.getStyleClass().add("button-secondary");
@@ -228,6 +249,13 @@ public class App extends Application {
 
         trimButton = new Button("Start Trimming");
         trimButton.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(trimButton, Priority.ALWAYS);
+
+        trimStopButton = new Button("⏹ Stop");
+        trimStopButton.getStyleClass().add("button-danger");
+        trimStopButton.setDisable(true);
+
+        HBox trimButtonBox = new HBox(10, trimButton, trimStopButton);
 
         Label trimStatusTitle = new Label("Status:");
         trimStatusTitle.getStyleClass().add("form-label");
@@ -248,13 +276,18 @@ public class App extends Application {
                 fileLabel, fileSelectBox,
                 timesGrid,
                 trimToMp4CheckBox,
-                trimButton,
+                trimButtonBox,
                 trimStatusBox,
                 trimLogArea
         );
         cutContainer.getChildren().add(cutCard);
         scrollCut.setContent(cutContainer);
         tabCut.setContent(scrollCut);
+
+        // Enable Drag & Drop on Tab 2
+        enableFileDragAndDrop(cutCard, filePathField);
+        enableFileDragAndDrop(filePathField, filePathField);
+        enableFileDragAndDrop(scrollCut, filePathField);
 
         // ==================== TAB 3: FORMAT CONVERTER ====================
         Tab tabConvert = new Tab("Format Converter");
@@ -270,12 +303,12 @@ public class App extends Application {
         Label convCardTitle = new Label("Media Format Conversion Panel");
         convCardTitle.getStyleClass().add("title-label");
 
-        Label convFileLabel = new Label("Select Media File (MKV, WebM, AVI, MOV, MP4, MP3, etc.):");
+        Label convFileLabel = new Label("Select Media File (Drag & Drop supported):");
         convFileLabel.getStyleClass().add("form-label");
 
         convFilePathField = new TextField();
         convFilePathField.setEditable(false);
-        convFilePathField.setPromptText("Choose a media file to convert...");
+        convFilePathField.setPromptText("Drag & drop a media file here or click Browse...");
 
         convBrowseButton = new Button("Browse File");
         convBrowseButton.getStyleClass().add("button-secondary");
@@ -305,6 +338,13 @@ public class App extends Application {
 
         convButton = new Button("Start Conversion");
         convButton.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(convButton, Priority.ALWAYS);
+
+        convStopButton = new Button("⏹ Stop");
+        convStopButton.getStyleClass().add("button-danger");
+        convStopButton.setDisable(true);
+
+        HBox convButtonBox = new HBox(10, convButton, convStopButton);
 
         convProgressBar = new ProgressBar(0.0);
         convProgressBar.setMaxWidth(Double.MAX_VALUE);
@@ -327,7 +367,7 @@ public class App extends Application {
                 convCardTitle,
                 convFileLabel, convFileSelectBox,
                 convTargetLabel, convTypeBox,
-                convButton,
+                convButtonBox,
                 convProgressBar,
                 convStatusBox,
                 convLogArea
@@ -336,12 +376,20 @@ public class App extends Application {
         scrollConvert.setContent(convContainer);
         tabConvert.setContent(scrollConvert);
 
+        // Enable Drag & Drop on Tab 3
+        enableFileDragAndDrop(convCard, convFilePathField);
+        enableFileDragAndDrop(convFilePathField, convFilePathField);
+        enableFileDragAndDrop(scrollConvert, convFilePathField);
+
         // Add tabs to tabPane
         tabPane.getTabs().addAll(tabDownload, tabCut, tabConvert);
 
         root.getChildren().addAll(header, tabPane);
 
         Scene scene = new Scene(root, 780, 700);
+
+        // Global Scene Drag & Drop support
+        setupGlobalSceneDragAndDrop(scene, tabPane, tabDownload, tabCut, tabConvert);
 
         // Load CSS resource
         try {
@@ -365,6 +413,7 @@ public class App extends Application {
             boolean isScript = rbScript.isSelected();
             boolean isImage = rbImage.isSelected();
 
+            downloadCancelled = false;
             setDownloadUIState(true);
             progressBar.setProgress(0);
             logArea.clear();
@@ -388,8 +437,10 @@ public class App extends Application {
 
             downloadTask.setOnFailed(event -> {
                 Throwable ex = downloadTask.getException();
-                logArea.appendText("\n[ERROR] An unexpected error occurred: " + ex.getMessage() + "\n");
-                statusLabel.setText("Error occurred.");
+                if (!downloadCancelled) {
+                    logArea.appendText("\n[ERROR] An unexpected error occurred: " + ex.getMessage() + "\n");
+                    statusLabel.setText("Error occurred.");
+                }
                 setDownloadUIState(false);
             });
 
@@ -398,6 +449,14 @@ public class App extends Application {
             });
 
             new Thread(downloadTask).start();
+        });
+
+        // Tab 1 Stop Action
+        downloadStopButton.setOnAction(e -> {
+            downloadCancelled = true;
+            statusLabel.setText("Stopping process...");
+            logArea.appendText("\n[CANCEL] Stopping download process...\n");
+            stopProcess(currentDownloadProcess);
         });
 
         // Tab 2 File Selector Action
@@ -445,6 +504,7 @@ public class App extends Application {
                 return;
             }
 
+            trimCancelled = false;
             setTrimUIState(true);
             trimLogArea.clear();
             trimStatusLabel.setText("Starting process...");
@@ -462,8 +522,10 @@ public class App extends Application {
 
             trimTask.setOnFailed(event -> {
                 Throwable ex = trimTask.getException();
-                trimLogArea.appendText("\n[ERROR] An unexpected error occurred: " + ex.getMessage() + "\n");
-                trimStatusLabel.setText("Error occurred.");
+                if (!trimCancelled) {
+                    trimLogArea.appendText("\n[ERROR] An unexpected error occurred: " + ex.getMessage() + "\n");
+                    trimStatusLabel.setText("Error occurred.");
+                }
                 setTrimUIState(false);
             });
 
@@ -472,6 +534,14 @@ public class App extends Application {
             });
 
             new Thread(trimTask).start();
+        });
+
+        // Tab 2 Stop Action
+        trimStopButton.setOnAction(e -> {
+            trimCancelled = true;
+            trimStatusLabel.setText("Stopping trim...");
+            trimLogArea.appendText("\n[CANCEL] Stopping trim process...\n");
+            stopProcess(currentTrimProcess);
         });
 
         // Tab 3 File Selector Action
@@ -504,6 +574,7 @@ public class App extends Application {
             else if (rbConvWav.isSelected()) targetFormat = "wav";
 
             final String finalTargetFormat = targetFormat;
+            convCancelled = false;
             setConvertUIState(true);
             convLogArea.clear();
             convStatusLabel.setText("Starting process...");
@@ -519,8 +590,10 @@ public class App extends Application {
 
             convTask.setOnFailed(event -> {
                 Throwable ex = convTask.getException();
-                convLogArea.appendText("\n[ERROR] An unexpected error occurred: " + ex.getMessage() + "\n");
-                convStatusLabel.setText("Error occurred.");
+                if (!convCancelled) {
+                    convLogArea.appendText("\n[ERROR] An unexpected error occurred: " + ex.getMessage() + "\n");
+                    convStatusLabel.setText("Error occurred.");
+                }
                 convProgressBar.setProgress(0);
                 setConvertUIState(false);
             });
@@ -530,6 +603,20 @@ public class App extends Application {
             });
 
             new Thread(convTask).start();
+        });
+
+        // Tab 3 Stop Action
+        convStopButton.setOnAction(e -> {
+            convCancelled = true;
+            convStatusLabel.setText("Stopping conversion...");
+            convLogArea.appendText("\n[CANCEL] Stopping conversion process...\n");
+            stopProcess(currentConvProcess);
+        });
+
+        primaryStage.setOnCloseRequest(e -> {
+            stopProcess(currentDownloadProcess);
+            stopProcess(currentTrimProcess);
+            stopProcess(currentConvProcess);
         });
 
         primaryStage.setScene(scene);
@@ -544,6 +631,7 @@ public class App extends Application {
             rbScript.setDisable(running);
             rbImage.setDisable(running);
             downloadButton.setDisable(running);
+            downloadStopButton.setDisable(!running);
         });
     }
 
@@ -554,6 +642,7 @@ public class App extends Application {
             endTimeField.setDisable(running);
             trimToMp4CheckBox.setDisable(running);
             trimButton.setDisable(running);
+            trimStopButton.setDisable(!running);
         });
     }
 
@@ -565,6 +654,7 @@ public class App extends Application {
             rbConvWebm.setDisable(running);
             rbConvWav.setDisable(running);
             convButton.setDisable(running);
+            convStopButton.setDisable(!running);
         });
     }
 
@@ -602,7 +692,8 @@ public class App extends Application {
 
         ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectErrorStream(true);
-        Process process = pb.start();
+        currentDownloadProcess = pb.start();
+        Process process = currentDownloadProcess;
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
@@ -625,16 +716,28 @@ public class App extends Application {
             }
         }
 
-        int exitCode = process.waitFor();
+        int exitCode;
+        try {
+            exitCode = process.waitFor();
+        } catch (Exception ex) {
+            exitCode = -1;
+        }
+        currentDownloadProcess = null;
+        final int finalExitCode = exitCode;
+
         Platform.runLater(() -> {
-            if (exitCode == 0) {
+            if (downloadCancelled) {
+                statusLabel.setText("Cancelled by user.");
+                progressBar.setProgress(0);
+                logArea.appendText("\n[CANCELLED] Video download process was stopped by user.\n");
+            } else if (finalExitCode == 0) {
                 statusLabel.setText("Success! Video downloaded.");
                 progressBar.setProgress(1.0);
                 logArea.appendText("\n[SUCCESS] Video download completed!\nSaved to: '" + downloadDir.toAbsolutePath() + "'\n");
             } else {
                 statusLabel.setText("Failed! Download error.");
                 progressBar.setProgress(0);
-                logArea.appendText("\n[ERROR] yt-dlp exited with error code: " + exitCode + "\n");
+                logArea.appendText("\n[ERROR] yt-dlp exited with error code: " + finalExitCode + "\n");
             }
         });
     }
@@ -672,7 +775,8 @@ public class App extends Application {
 
         ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectErrorStream(true);
-        Process process = pb.start();
+        currentDownloadProcess = pb.start();
+        Process process = currentDownloadProcess;
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
@@ -695,16 +799,28 @@ public class App extends Application {
             }
         }
 
-        int exitCode = process.waitFor();
+        int exitCode;
+        try {
+            exitCode = process.waitFor();
+        } catch (Exception ex) {
+            exitCode = -1;
+        }
+        currentDownloadProcess = null;
+        final int finalAudioExitCode = exitCode;
+
         Platform.runLater(() -> {
-            if (exitCode == 0) {
+            if (downloadCancelled) {
+                statusLabel.setText("Cancelled by user.");
+                progressBar.setProgress(0);
+                logArea.appendText("\n[CANCELLED] Audio extraction process was stopped by user.\n");
+            } else if (finalAudioExitCode == 0) {
                 statusLabel.setText("Success! MP3 downloaded.");
                 progressBar.setProgress(1.0);
                 logArea.appendText("\n[SUCCESS] Audio download and conversion completed!\nSaved to: '" + downloadDir.toAbsolutePath() + "'\n");
             } else {
                 statusLabel.setText("Failed! Audio download error.");
                 progressBar.setProgress(0);
-                logArea.appendText("\n[ERROR] yt-dlp exited with error code: " + exitCode + "\n");
+                logArea.appendText("\n[ERROR] yt-dlp exited with error code: " + finalAudioExitCode + "\n");
             }
         });
     }
@@ -747,7 +863,8 @@ public class App extends Application {
 
         ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectErrorStream(true);
-        Process process = pb.start();
+        currentDownloadProcess = pb.start();
+        Process process = currentDownloadProcess;
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
@@ -770,24 +887,37 @@ public class App extends Application {
             }
         }
 
-        int exitCode = process.waitFor();
+        int exitCode;
+        try {
+            exitCode = process.waitFor();
+        } catch (Exception ex) {
+            exitCode = -1;
+        }
+        currentDownloadProcess = null;
+        final int finalTranscriptExitCode = exitCode;
 
         // Convert downloaded .srt files to clean .txt files
         int convertedCount = 0;
-        try (var stream = Files.list(downloadDir)) {
-            List<Path> srtFiles = stream.filter(p -> p.toString().toLowerCase().endsWith(".srt")).toList();
-            for (Path srt : srtFiles) {
-                if (convertSrtToCleanText(srt)) {
-                    convertedCount++;
+        if (!downloadCancelled) {
+            try (var stream = Files.list(downloadDir)) {
+                List<Path> srtFiles = stream.filter(p -> p.toString().toLowerCase().endsWith(".srt")).toList();
+                for (Path srt : srtFiles) {
+                    if (convertSrtToCleanText(srt)) {
+                        convertedCount++;
+                    }
                 }
+            } catch (Exception ex) {
+                Platform.runLater(() -> logArea.appendText("[WARNING] Text conversion notice: " + ex.getMessage() + "\n"));
             }
-        } catch (Exception ex) {
-            Platform.runLater(() -> logArea.appendText("[WARNING] Text conversion notice: " + ex.getMessage() + "\n"));
         }
 
         final int totalConverted = convertedCount;
         Platform.runLater(() -> {
-            if (exitCode == 0 || totalConverted > 0) {
+            if (downloadCancelled) {
+                statusLabel.setText("Cancelled by user.");
+                progressBar.setProgress(0);
+                logArea.appendText("\n[CANCELLED] Script / Transcript extraction was stopped by user.\n");
+            } else if (finalTranscriptExitCode == 0 || totalConverted > 0) {
                 statusLabel.setText("Success! Script(s) downloaded.");
                 progressBar.setProgress(1.0);
                 logArea.appendText("\n[SUCCESS] Script / Transcript extraction completed!\n"
@@ -795,7 +925,7 @@ public class App extends Application {
             } else {
                 statusLabel.setText("Failed! No transcript found.");
                 progressBar.setProgress(0);
-                logArea.appendText("\n[ERROR] yt-dlp exited with code: " + exitCode + " or no subtitles were available.\n");
+                logArea.appendText("\n[ERROR] yt-dlp exited with code: " + finalTranscriptExitCode + " or no subtitles were available.\n");
             }
         });
     }
@@ -868,6 +998,14 @@ public class App extends Application {
 
         int count = 0;
         for (Element img : images) {
+            if (downloadCancelled) {
+                Platform.runLater(() -> {
+                    statusLabel.setText("Cancelled by user.");
+                    progressBar.setProgress(0);
+                    logArea.appendText("\n[CANCELLED] Image download was stopped by user.\n");
+                });
+                return;
+            }
             String imgUrl = img.absUrl("src");
             if (!imgUrl.isEmpty()) {
                 count++;
@@ -888,8 +1026,12 @@ public class App extends Application {
 
         final int finalCount = count;
         Platform.runLater(() -> {
-            statusLabel.setText("Success! Images downloaded.");
-            logArea.appendText("\n[SUCCESS] Total " + finalCount + " images saved to: '" + downloadDir.toAbsolutePath() + "'\n");
+            if (downloadCancelled) {
+                statusLabel.setText("Cancelled by user.");
+            } else {
+                statusLabel.setText("Success! Images downloaded.");
+                logArea.appendText("\n[SUCCESS] Total " + finalCount + " images saved to: '" + downloadDir.toAbsolutePath() + "'\n");
+            }
         });
     }
 
@@ -998,7 +1140,8 @@ public class App extends Application {
 
         ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectErrorStream(true);
-        Process process = pb.start();
+        currentTrimProcess = pb.start();
+        Process process = currentTrimProcess;
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
@@ -1008,15 +1151,32 @@ public class App extends Application {
             }
         }
 
-        int exitCode = process.waitFor();
+        int exitCode;
+        try {
+            exitCode = process.waitFor();
+        } catch (Exception ex) {
+            exitCode = -1;
+        }
+        currentTrimProcess = null;
         Path finalOutPath = outPath;
+        final int finalTrimExitCode = exitCode;
+
         Platform.runLater(() -> {
-            if (exitCode == 0) {
+            if (trimCancelled) {
+                trimStatusLabel.setText("Cancelled by user.");
+                trimLogArea.appendText("\n[CANCELLED] Media trimming was stopped by user.\n");
+                try {
+                    if (Files.exists(finalOutPath)) {
+                        Files.deleteIfExists(finalOutPath);
+                    }
+                } catch (Exception ignored) {
+                }
+            } else if (finalTrimExitCode == 0) {
                 trimStatusLabel.setText("Success! Media trimmed.");
                 trimLogArea.appendText("\n[SUCCESS] Media trimmed successfully!\nSaved to: " + finalOutPath.toAbsolutePath() + "\n");
             } else {
                 trimStatusLabel.setText("Failed! Trimming error.");
-                trimLogArea.appendText("\n[ERROR] FFmpeg exited with code: " + exitCode + "\n");
+                trimLogArea.appendText("\n[ERROR] FFmpeg exited with code: " + finalTrimExitCode + "\n");
             }
         });
     }
@@ -1101,7 +1261,8 @@ public class App extends Application {
 
         ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectErrorStream(true);
-        Process process = pb.start();
+        currentConvProcess = pb.start();
+        Process process = currentConvProcess;
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
@@ -1111,17 +1272,35 @@ public class App extends Application {
             }
         }
 
-        int exitCode = process.waitFor();
+        int exitCode;
+        try {
+            exitCode = process.waitFor();
+        } catch (Exception ex) {
+            exitCode = -1;
+        }
+        currentConvProcess = null;
         Path finalOutPath = outPath;
+        final int finalConvExitCode = exitCode;
+
         Platform.runLater(() -> {
-            if (exitCode == 0) {
+            if (convCancelled) {
+                convStatusLabel.setText("Cancelled by user.");
+                convProgressBar.setProgress(0);
+                convLogArea.appendText("\n[CANCELLED] Media conversion was stopped by user.\n");
+                try {
+                    if (Files.exists(finalOutPath)) {
+                        Files.deleteIfExists(finalOutPath);
+                    }
+                } catch (Exception ignored) {
+                }
+            } else if (finalConvExitCode == 0) {
                 convStatusLabel.setText("Success! Conversion completed.");
                 convProgressBar.setProgress(1.0);
                 convLogArea.appendText("\n[SUCCESS] Media converted successfully!\nSaved to: " + finalOutPath.toAbsolutePath() + "\n");
             } else {
                 convStatusLabel.setText("Failed! Conversion error.");
                 convProgressBar.setProgress(0);
-                convLogArea.appendText("\n[ERROR] FFmpeg exited with code: " + exitCode + "\n");
+                convLogArea.appendText("\n[ERROR] FFmpeg exited with code: " + finalConvExitCode + "\n");
             }
         });
     }
@@ -1281,6 +1460,186 @@ public class App extends Application {
             // user home fallback
             String userHome = System.getProperty("user.home", ".");
             return Paths.get(userHome, "Downloads", "MediaSuitePro");
+        }
+    }
+
+    private void setupGlobalSceneDragAndDrop(Scene scene, TabPane tabPane, Tab tabDownload, Tab tabCut, Tab tabConvert) {
+        scene.setOnDragOver(event -> {
+            Dragboard db = event.getDragboard();
+            if (db.hasFiles() || db.hasUrl() || db.hasString()) {
+                event.acceptTransferModes(TransferMode.ANY);
+            }
+            event.consume();
+        });
+
+        scene.setOnDragDropped(event -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+
+            if (db.hasFiles()) {
+                List<File> files = db.getFiles();
+                if (files != null && !files.isEmpty()) {
+                    String path = files.get(0).getAbsolutePath();
+                    if (selectedTab == tabCut) {
+                        filePathField.setText(path);
+                        success = true;
+                    } else if (selectedTab == tabConvert) {
+                        convFilePathField.setText(path);
+                        success = true;
+                    } else if (selectedTab == tabDownload) {
+                        linkField.setText(path);
+                        success = true;
+                    }
+                }
+            } else if (db.hasUrl() && db.getUrl() != null && !db.getUrl().isBlank()) {
+                String url = db.getUrl().trim();
+                if (selectedTab == tabDownload) {
+                    linkField.setText(url);
+                    success = true;
+                } else if (selectedTab == tabCut) {
+                    filePathField.setText(cleanPath(url));
+                    success = true;
+                } else if (selectedTab == tabConvert) {
+                    convFilePathField.setText(cleanPath(url));
+                    success = true;
+                }
+            } else if (db.hasString() && db.getString() != null && !db.getString().isBlank()) {
+                String text = db.getString().trim();
+                if (selectedTab == tabDownload) {
+                    linkField.setText(text);
+                    success = true;
+                } else if (selectedTab == tabCut) {
+                    filePathField.setText(cleanPath(text));
+                    success = true;
+                } else if (selectedTab == tabConvert) {
+                    convFilePathField.setText(cleanPath(text));
+                    success = true;
+                }
+            }
+            event.setDropCompleted(success);
+            event.consume();
+        });
+    }
+
+    private void enableFileDragAndDrop(Node targetNode, TextField targetField) {
+        if (targetNode == null || targetField == null) return;
+
+        targetNode.setOnDragOver(event -> {
+            Dragboard db = event.getDragboard();
+            if (db.hasFiles() || db.hasString() || db.hasUrl()) {
+                event.acceptTransferModes(TransferMode.ANY);
+            }
+            event.consume();
+        });
+
+        targetNode.setOnDragEntered(event -> {
+            Dragboard db = event.getDragboard();
+            if (db.hasFiles() || db.hasString() || db.hasUrl()) {
+                if (!targetNode.getStyleClass().contains("drag-over")) {
+                    targetNode.getStyleClass().add("drag-over");
+                }
+            }
+            event.consume();
+        });
+
+        targetNode.setOnDragExited(event -> {
+            targetNode.getStyleClass().remove("drag-over");
+            event.consume();
+        });
+
+        targetNode.setOnDragDropped(event -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasFiles()) {
+                List<File> files = db.getFiles();
+                if (files != null && !files.isEmpty()) {
+                    File file = files.get(0);
+                    targetField.setText(file.getAbsolutePath());
+                    success = true;
+                }
+            } else if (db.hasString() && db.getString() != null && !db.getString().isBlank()) {
+                targetField.setText(cleanPath(db.getString()));
+                success = true;
+            } else if (db.hasUrl() && db.getUrl() != null && !db.getUrl().isBlank()) {
+                targetField.setText(cleanPath(db.getUrl()));
+                success = true;
+            }
+            event.setDropCompleted(success);
+            targetNode.getStyleClass().remove("drag-over");
+            event.consume();
+        });
+    }
+
+    private void enableUrlDragAndDrop(Node targetNode) {
+        if (targetNode == null) return;
+
+        targetNode.setOnDragOver(event -> {
+            Dragboard db = event.getDragboard();
+            if (db.hasString() || db.hasUrl() || db.hasFiles()) {
+                event.acceptTransferModes(TransferMode.ANY);
+            }
+            event.consume();
+        });
+
+        targetNode.setOnDragEntered(event -> {
+            Dragboard db = event.getDragboard();
+            if (db.hasString() || db.hasUrl() || db.hasFiles()) {
+                if (!targetNode.getStyleClass().contains("drag-over")) {
+                    targetNode.getStyleClass().add("drag-over");
+                }
+            }
+            event.consume();
+        });
+
+        targetNode.setOnDragExited(event -> {
+            targetNode.getStyleClass().remove("drag-over");
+            event.consume();
+        });
+
+        targetNode.setOnDragDropped(event -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasUrl() && db.getUrl() != null && !db.getUrl().isBlank()) {
+                linkField.setText(db.getUrl().trim());
+                success = true;
+            } else if (db.hasString() && db.getString() != null && !db.getString().isBlank()) {
+                linkField.setText(db.getString().trim());
+                success = true;
+            } else if (db.hasFiles()) {
+                List<File> files = db.getFiles();
+                if (files != null && !files.isEmpty()) {
+                    linkField.setText(files.get(0).getAbsolutePath());
+                    success = true;
+                }
+            }
+            event.setDropCompleted(success);
+            targetNode.getStyleClass().remove("drag-over");
+            event.consume();
+        });
+    }
+
+    private String cleanPath(String raw) {
+        if (raw == null) return "";
+        String s = raw.trim();
+        if (s.startsWith("file:///")) {
+            s = s.substring(8);
+        } else if (s.startsWith("file://")) {
+            s = s.substring(7);
+        }
+        if (s.startsWith("\"") && s.endsWith("\"") && s.length() >= 2) {
+            s = s.substring(1, s.length() - 1);
+        }
+        return s.replace('/', File.separatorChar);
+    }
+
+    private void stopProcess(Process process) {
+        if (process != null && process.isAlive()) {
+            try {
+                process.descendants().forEach(ProcessHandle::destroyForcibly);
+                process.destroyForcibly();
+            } catch (Exception ignored) {
+            }
         }
     }
 
