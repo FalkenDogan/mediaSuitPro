@@ -44,8 +44,8 @@ A modern, fast, and feature-rich desktop application for **Media Downloading, Tr
 ### Running from Source
 ```bash
 # Clone the repository
-git clone <REPOSITORY_URL>
-cd yt-dlpProjekt
+git clone https://github.com/FalkenDogan/mediaSuitPro.git
+cd mediaSuitPro
 
 # Build and run with JavaFX
 mvn javafx:run
