@@ -72,24 +72,24 @@ MediaSuite Pro runs seamlessly on **Windows**, **macOS**, and **Linux**.
 
 ### 🚀 Running the Application (Linux / macOS / Windows)
 
-Uygulamayı çalıştırmak için proje dizininde şu komutları uygulayın:
+Execute the following commands in the project directory:
 
 ```bash
-# 1. Projeyi klonlayın ve klasöre girin
+# 1. Clone the repository and navigate into the folder
 git clone https://github.com/FalkenDogan/mediaSuitPro.git
 cd mediaSuitPro
 
-# 2. JavaFX ile derleyin ve başlatın (Tüm işletim sistemlerinde geçerlidir)
+# 2. Build and launch with JavaFX (Works across Windows, macOS, and Linux)
 mvn javafx:run
 ```
 
-### 📦 Bağımsız (Executable) JAR Olarak Paketleme ve Çalıştırma
+### 📦 Packaging into Executable JAR and Running
 
 ```bash
-# JAR dosyasını derleyin
+# Build the standalone JAR
 mvn clean package
 
-# Oluşan JAR'ı doğrudan çalıştırın
+# Run the generated JAR directly
 java -jar target/yt-dlpProjekt-1.0-SNAPSHOT.jar
 ```
 
