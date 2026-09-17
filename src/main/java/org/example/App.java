@@ -22,12 +22,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class App extends Application {
+
+    private static final boolean IS_WINDOWS = System.getProperty("os.name", "").toLowerCase().contains("win");
+    private static final boolean IS_MAC = System.getProperty("os.name", "").toLowerCase().contains("mac");
 
     // Tab 1 Controls (Downloader)
     private TextField linkField;
@@ -569,27 +573,34 @@ public class App extends Application {
     private void downloadVideo(String link) throws Exception {
         Path downloadDir = getDownloadDirectory();
         Files.createDirectories(downloadDir);
-        Path ytDlpPath = resolveExecutablePath("yt-dlp.exe");
+        Path ytDlpPath = resolveExecutablePath("yt-dlp");
 
-        if (!Files.exists(ytDlpPath)) {
-            throw new FileNotFoundException("yt-dlp.exe was not found. Please ensure it is in the application directory.");
+        if (!isExecutableAvailable(ytDlpPath)) {
+            throw new FileNotFoundException(getMissingBinaryMessage("yt-dlp"));
         }
 
+        Path ffmpegPath = resolveExecutablePath("ffmpeg");
         String normalizedLink = normalizeYouTubeLink(link);
         Platform.runLater(() -> {
             statusLabel.setText("Downloading (Video)...");
             logArea.appendText("Starting video download: " + normalizedLink + "\n");
         });
 
-        ProcessBuilder pb = new ProcessBuilder(
-                List.of(
-                        ytDlpPath.toString(),
-                        "--merge-output-format", "mp4",
-                        "--remux-video", "mp4",
-                        "-P", downloadDir.toString(),
-                        normalizedLink
-                )
-        );
+        List<String> cmd = new ArrayList<>();
+        cmd.add(ytDlpPath.toString());
+        if (isExecutableAvailable(ffmpegPath)) {
+            cmd.add("--ffmpeg-location");
+            cmd.add(ffmpegPath.getParent() != null ? ffmpegPath.getParent().toString() : ffmpegPath.toString());
+        }
+        cmd.add("--merge-output-format");
+        cmd.add("mp4");
+        cmd.add("--remux-video");
+        cmd.add("mp4");
+        cmd.add("-P");
+        cmd.add(downloadDir.toString());
+        cmd.add(normalizedLink);
+
+        ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectErrorStream(true);
         Process process = pb.start();
 
@@ -631,28 +642,35 @@ public class App extends Application {
     private void downloadAudio(String link) throws Exception {
         Path downloadDir = getDownloadDirectory();
         Files.createDirectories(downloadDir);
-        Path ytDlpPath = resolveExecutablePath("yt-dlp.exe");
+        Path ytDlpPath = resolveExecutablePath("yt-dlp");
 
-        if (!Files.exists(ytDlpPath)) {
-            throw new FileNotFoundException("yt-dlp.exe was not found. Please ensure it is in the application directory.");
+        if (!isExecutableAvailable(ytDlpPath)) {
+            throw new FileNotFoundException(getMissingBinaryMessage("yt-dlp"));
         }
 
+        Path ffmpegPath = resolveExecutablePath("ffmpeg");
         String normalizedLink = normalizeYouTubeLink(link);
         Platform.runLater(() -> {
             statusLabel.setText("Downloading (Audio/MP3)...");
             logArea.appendText("Starting audio extraction: " + normalizedLink + "\n");
         });
 
-        ProcessBuilder pb = new ProcessBuilder(
-                List.of(
-                        ytDlpPath.toString(),
-                        "--extract-audio",
-                        "--audio-format", "mp3",
-                        "--audio-quality", "0",
-                        "-P", downloadDir.toString(),
-                        normalizedLink
-                )
-        );
+        List<String> cmd = new ArrayList<>();
+        cmd.add(ytDlpPath.toString());
+        if (isExecutableAvailable(ffmpegPath)) {
+            cmd.add("--ffmpeg-location");
+            cmd.add(ffmpegPath.getParent() != null ? ffmpegPath.getParent().toString() : ffmpegPath.toString());
+        }
+        cmd.add("--extract-audio");
+        cmd.add("--audio-format");
+        cmd.add("mp3");
+        cmd.add("--audio-quality");
+        cmd.add("0");
+        cmd.add("-P");
+        cmd.add(downloadDir.toString());
+        cmd.add(normalizedLink);
+
+        ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectErrorStream(true);
         Process process = pb.start();
 
@@ -694,32 +712,40 @@ public class App extends Application {
     private void downloadTranscript(String link) throws Exception {
         Path downloadDir = getDownloadDirectory().resolve("transcripts");
         Files.createDirectories(downloadDir);
-        Path ytDlpPath = resolveExecutablePath("yt-dlp.exe");
+        Path ytDlpPath = resolveExecutablePath("yt-dlp");
 
-        if (!Files.exists(ytDlpPath)) {
-            throw new FileNotFoundException("yt-dlp.exe was not found. Please ensure it is in the application directory.");
+        if (!isExecutableAvailable(ytDlpPath)) {
+            throw new FileNotFoundException(getMissingBinaryMessage("yt-dlp"));
         }
 
+        Path ffmpegPath = resolveExecutablePath("ffmpeg");
         String normalizedLink = normalizeYouTubeLink(link);
         Platform.runLater(() -> {
             statusLabel.setText("Extracting Script/Transcript...");
             logArea.appendText("Starting transcript download: " + normalizedLink + "\n");
         });
 
-        ProcessBuilder pb = new ProcessBuilder(
-                List.of(
-                        ytDlpPath.toString(),
-                        "--skip-download",
-                        "--write-subs",
-                        "--write-auto-subs",
-                        "--sub-langs", "tr,en,.*-orig",
-                        "--convert-subs", "srt",
-                        "--ignore-errors",
-                        "-o", "%(playlist_index&{:02d} - |)s%(title)s [%(id)s].%(ext)s",
-                        "-P", downloadDir.toString(),
-                        normalizedLink
-                )
-        );
+        List<String> cmd = new ArrayList<>();
+        cmd.add(ytDlpPath.toString());
+        if (isExecutableAvailable(ffmpegPath)) {
+            cmd.add("--ffmpeg-location");
+            cmd.add(ffmpegPath.getParent() != null ? ffmpegPath.getParent().toString() : ffmpegPath.toString());
+        }
+        cmd.add("--skip-download");
+        cmd.add("--write-subs");
+        cmd.add("--write-auto-subs");
+        cmd.add("--sub-langs");
+        cmd.add("tr,en,.*-orig");
+        cmd.add("--convert-subs");
+        cmd.add("srt");
+        cmd.add("--ignore-errors");
+        cmd.add("-o");
+        cmd.add("%(playlist_index&{:02d} - |)s%(title)s [%(id)s].%(ext)s");
+        cmd.add("-P");
+        cmd.add(downloadDir.toString());
+        cmd.add(normalizedLink);
+
+        ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectErrorStream(true);
         Process process = pb.start();
 
@@ -930,9 +956,9 @@ public class App extends Application {
             outPath = parent.resolve(outName);
         }
 
-        Path ffmpegPath = resolveExecutablePath("ffmpeg.exe");
-        if (!Files.exists(ffmpegPath)) {
-            throw new FileNotFoundException("ffmpeg.exe was not found. Please ensure it is in the application directory.");
+        Path ffmpegPath = resolveExecutablePath("ffmpeg");
+        if (!isExecutableAvailable(ffmpegPath)) {
+            throw new FileNotFoundException(getMissingBinaryMessage("ffmpeg"));
         }
 
         List<String> cmd;
@@ -1019,9 +1045,9 @@ public class App extends Application {
             outPath = parent.resolve(outName);
         }
 
-        Path ffmpegPath = resolveExecutablePath("ffmpeg.exe");
-        if (!Files.exists(ffmpegPath)) {
-            throw new FileNotFoundException("ffmpeg.exe was not found. Please ensure it is in the application directory.");
+        Path ffmpegPath = resolveExecutablePath("ffmpeg");
+        if (!isExecutableAvailable(ffmpegPath)) {
+            throw new FileNotFoundException(getMissingBinaryMessage("ffmpeg"));
         }
 
         List<String> cmd;
@@ -1128,23 +1154,111 @@ public class App extends Application {
         return seconds;
     }
 
-    private Path resolveExecutablePath(String filename) {
+    private Path resolveExecutablePath(String baseBinaryName) {
+        String cleanName = baseBinaryName.endsWith(".exe")
+                ? baseBinaryName.substring(0, baseBinaryName.length() - 4)
+                : baseBinaryName;
+        String binaryName = IS_WINDOWS ? (cleanName + ".exe") : cleanName;
+
         // 1. Check current working directory
-        Path path = Paths.get(filename).toAbsolutePath().normalize();
-        if (Files.exists(path)) {
-            return path;
+        Path localPath = Paths.get(binaryName).toAbsolutePath().normalize();
+        if (Files.isRegularFile(localPath)) {
+            ensureExecutable(localPath);
+            return localPath;
         }
-        // 2. Check next to the jar/exe file location
+
+        // 2. Check application / JAR directory and its parent
         try {
-            String jarDir = new File(App.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent();
-            Path jarPath = Paths.get(jarDir, filename).toAbsolutePath().normalize();
-            if (Files.exists(jarPath)) {
-                return jarPath;
+            File codeSource = new File(App.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            File jarDir = codeSource.isDirectory() ? codeSource : codeSource.getParentFile();
+            if (jarDir != null) {
+                Path jarPath = jarDir.toPath().resolve(binaryName).toAbsolutePath().normalize();
+                if (Files.isRegularFile(jarPath)) {
+                    ensureExecutable(jarPath);
+                    return jarPath;
+                }
+                if (jarDir.getParentFile() != null) {
+                    Path rootPath = jarDir.getParentFile().toPath().resolve(binaryName).toAbsolutePath().normalize();
+                    if (Files.isRegularFile(rootPath)) {
+                        ensureExecutable(rootPath);
+                        return rootPath;
+                    }
+                }
             }
-        } catch (Exception e) {
-            // ignore
+        } catch (Exception ignored) {
         }
-        return path;
+
+        // 3. Check system PATH directories
+        String pathEnv = System.getenv("PATH");
+        if (pathEnv != null) {
+            String[] dirs = pathEnv.split(Pattern.quote(File.pathSeparator));
+            for (String dir : dirs) {
+                if (!dir.isBlank()) {
+                    Path p = Paths.get(dir.trim(), binaryName);
+                    if (Files.isRegularFile(p)) {
+                        ensureExecutable(p);
+                        return p.toAbsolutePath().normalize();
+                    }
+                }
+            }
+        }
+
+        // 4. Check common Unix / macOS directories
+        if (!IS_WINDOWS) {
+            String userHome = System.getProperty("user.home", "");
+            String[] commonUnixPaths = {
+                    "/opt/homebrew/bin",
+                    "/usr/local/bin",
+                    "/usr/bin",
+                    "/bin",
+                    userHome + "/.local/bin"
+            };
+            for (String dir : commonUnixPaths) {
+                if (!dir.isBlank()) {
+                    Path p = Paths.get(dir, binaryName);
+                    if (Files.isRegularFile(p)) {
+                        ensureExecutable(p);
+                        return p.toAbsolutePath().normalize();
+                    }
+                }
+            }
+        }
+
+        // Fallback: return default resolved path (or command name for PATH lookup)
+        return localPath;
+    }
+
+    private boolean isExecutableAvailable(Path path) {
+        if (path == null) return false;
+        if (Files.isRegularFile(path)) {
+            return !IS_WINDOWS || path.toFile().canExecute();
+        }
+        try {
+            Process p = new ProcessBuilder(List.of(path.toString(), "--version")).start();
+            p.destroy();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void ensureExecutable(Path path) {
+        if (!IS_WINDOWS && Files.exists(path)) {
+            File f = path.toFile();
+            if (!f.canExecute()) {
+                f.setExecutable(true, false);
+            }
+        }
+    }
+
+    private String getMissingBinaryMessage(String binaryName) {
+        String ext = IS_WINDOWS ? ".exe" : "";
+        String installHint = IS_WINDOWS
+                ? "Please place " + binaryName + ext + " in the application directory or add it to system PATH."
+                : (IS_MAC
+                ? "Please install via Homebrew ('brew install " + binaryName + "') or place it in the application directory."
+                : "Please install via your package manager ('sudo apt install " + binaryName + "') or place it in the application directory.");
+        return "'" + binaryName + ext + "' was not found.\n" + installHint;
     }
 
     private Path getDownloadDirectory() {
@@ -1152,12 +1266,22 @@ public class App extends Application {
             File jarFile = new File(App.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             File parentDir = jarFile.getParentFile().getParentFile();
             if (parentDir != null && parentDir.exists()) {
-                return parentDir.toPath().resolve("downloads");
+                Path dir = parentDir.toPath().resolve("downloads");
+                Files.createDirectories(dir);
+                return dir;
             }
         } catch (Exception e) {
             // fallback
         }
-        return Paths.get("downloads").toAbsolutePath().normalize();
+        try {
+            Path dir = Paths.get("downloads").toAbsolutePath().normalize();
+            Files.createDirectories(dir);
+            return dir;
+        } catch (Exception e) {
+            // user home fallback
+            String userHome = System.getProperty("user.home", ".");
+            return Paths.get(userHome, "Downloads", "MediaSuitePro");
+        }
     }
 
     private void showError(String title, String content) {

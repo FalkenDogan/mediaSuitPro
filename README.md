@@ -32,16 +32,46 @@ A modern, fast, and feature-rich desktop application for **Media Downloading, Tr
 
 ---
 
-## 🛠️ Prerequisites & Setup
+## 🛠️ Prerequisites & Setup (Cross-Platform)
+
+MediaSuite Pro runs seamlessly on **Windows**, **macOS**, and **Linux**.
 
 ### Prerequisites
 - **Java 19+** (JDK)
 - **Maven 3.8+**
-- Executables placed in the application directory or available in system `PATH`:
-  - `yt-dlp.exe`
-  - `ffmpeg.exe` and `ffprobe.exe`
+- **yt-dlp** and **FFmpeg** (installed system-wide via PATH or placed in the application root directory):
 
-### Running from Source
+#### 🪟 Windows Setup
+- Place `yt-dlp.exe` and `ffmpeg.exe` in the application directory, or install via winget / scoop:
+  ```powershell
+  winget install yt-dlp.yt-dlp
+  winget install Gyan.FFmpeg
+  ```
+
+#### 🍎 macOS Setup
+- Install using [Homebrew](https://brew.sh):
+  ```bash
+  brew install yt-dlp ffmpeg
+  ```
+
+#### 🐧 Linux Setup (Ubuntu / Debian / Arch / Fedora)
+- Ubuntu / Debian:
+  ```bash
+  sudo apt update && sudo apt install ffmpeg yt-dlp
+  ```
+- Arch Linux:
+  ```bash
+  sudo pacman -S ffmpeg yt-dlp
+  ```
+- Fedora:
+  ```bash
+  sudo dnf install ffmpeg yt-dlp
+  ```
+
+---
+
+### 🚀 Running the Application
+
 ```bash
 # Clone the repository
 git clone https://github.com/FalkenDogan/mediaSuitPro.git
@@ -51,7 +81,7 @@ cd mediaSuitPro
 mvn javafx:run
 ```
 
-### Packaging into JAR
+### 📦 Packaging into Executable JAR
 ```bash
 mvn clean package
 ```
