@@ -1,0 +1,25 @@
+# Maven
+target/
+*.class
+
+# Medya İndirme & Çıktı Klasörleri
+downloads/
+audio_downloads/
+transcripts/
+resim_indirilenler/
+video_downloads/
+
+# Büyük Binary Dosyaları
+*.exe
+*.dll
+
+# IDE Yapılandırmaları
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# Loglar
+*.log
