@@ -1,6 +1,6 @@
 # 🚀 MediaSuite Pro
 
-Modern, hızlı ve kullanımı kolay **Medya İndirici, Kesici, Script/Transkript Çekici ve Format Dönüştürücü** masaüstü uygulaması.
+A modern, fast, and feature-rich desktop application for **Media Downloading, Trimming, Script/Transcript Extraction, and Format Conversion**.
 
 ![Java](https://img.shields.io/badge/Java-19+-orange.svg)
 ![JavaFX](https://img.shields.io/badge/JavaFX-21-blue.svg)
@@ -10,61 +10,61 @@ Modern, hızlı ve kullanımı kolay **Medya İndirici, Kesici, Script/Transkrip
 
 ---
 
-## ✨ Özellikler
+## ✨ Key Features
 
-### 1. 📥 Medya İndirici (Downloader)
-- **Evrensel Video İndirme (MP4):** YouTube, Twitter/X, Bluesky, Facebook vb. yüzlerce siteden yüksek kalitede video indirme.
-- **Ses / MP3 İndirme:** Videolardan sesi otomatik ayıklayıp yüksek kaliteli MP3 olarak kaydetme.
-- **Script / Transkript Çekici (.srt & .txt):** Videoları indirmeden saniyeler içinde altyazı ve temiz metin/makale dökümlerini alma.
-- **Oynatma Listesi (Playlist / Seri) Desteği:** Tek bir link ile tüm seriyi sırayla ve numaralandırılmış olarak indirme.
-- **Web Sayfası Resim İndirici:** Belirtilen web sayfasındaki tüm görselleri JSoup ile toplu olarak kaydetme.
+### 1. 📥 Media Downloader
+- **Universal Video Download (MP4):** Download high-quality videos from YouTube, Twitter/X, Bluesky, Facebook, and hundreds of other supported platforms. All downloads are automatically remuxed into web-friendly `.mp4` (H.264 / AAC) format.
+- **Audio / MP3 Extraction:** Extract audio directly and encode to high-bitrate MP3.
+- **Script / Transcript Extractor (.srt & .txt):** Download auto-generated or manual subtitles without downloading the video itself, and automatically generate clean, timestamp-free text transcripts (`.txt`) alongside `.srt` files.
+- **Playlist & Series Support:** Seamlessly process full playlists and series in indexed order.
+- **Web Page Image Scraper:** Extract and download all images from any webpage using Jsoup.
 
-### 2. ✂️ Medya Kesici / Tıraşlayıcı (Trimmer)
-- Zaman kodları (`00:01:30` veya saniye cinsinden) belirterek videoları ve sesleri kayıpsız veya istenilen formatta kesme.
-- **Otomatik MP4 Dönüştürme:** Kesilen MKV/WebM gibi videoları internete ve sosyal medyaya hazır standart `.mp4` formatına dönüştürme.
+### 2. ✂️ Media Cutter (Trimmer)
+- Trim video and audio with precision using timestamps (`hh:mm:ss` or seconds).
+- **Auto MP4 Re-encoding:** Convert trimmed clips directly to universal MP4 format for immediate web and mobile compatibility, or use lossless stream copy.
 
-### 3. 🔄 Format Dönüştürücü (Converter)
-- Bilgisayarınızdaki mevcut **MKV, WebM, AVI, MOV, FLV, TS, WMV** vb. formatları tek tıkla dönüştürme:
-  - 🎬 **MP4 Video (H.264 / AAC):** Web, mobil ve montaj programlarıyla %100 uyumlu (`+faststart`).
-  - 🎵 **MP3 Ses (320 kbps):** Yüksek bit hızında kristal netliğinde ses.
+### 3. 🔄 Format Converter
+- Convert local video/audio files (MKV, WebM, AVI, MOV, FLV, TS, WMV, etc.) into standard formats:
+  - 🎬 **MP4 Video (H.264 / AAC):** 100% compatible across all browsers, mobile devices, and video editors (`+faststart` web-optimized).
+  - 🎵 **MP3 Audio (320 kbps):** High-bitrate crystal clear audio.
   - 🎬 **WebM Video (VP9 / Opus)**
-  - 🎵 **WAV Ses (Kayıpsız)**
+  - 🎵 **WAV Audio (Lossless)**
 
 ---
 
-## 🛠️ Gereksinimler & Kurulum
+## 🛠️ Prerequisites & Setup
 
-### Gereksinimler:
+### Prerequisites
 - **Java 19+** (JDK)
 - **Maven 3.8+**
-- Uygulama dizininde (veya sistem PATH'inde):
+- Executables placed in the application directory or available in system `PATH`:
   - `yt-dlp.exe`
-  - `ffmpeg.exe` ve `ffprobe.exe`
+  - `ffmpeg.exe` and `ffprobe.exe`
 
-### Kaynak Koddan Çalıştırma:
+### Running from Source
 ```bash
-# Depoyu klonlayın
-git clone <REPO_URL>
+# Clone the repository
+git clone <REPOSITORY_URL>
 cd yt-dlpProjekt
 
-# Derleyin ve başlatın
+# Build and run with JavaFX
 mvn javafx:run
 ```
 
-### JAR Olarak Paketleme:
+### Packaging into JAR
 ```bash
 mvn clean package
 ```
 
 ---
 
-## ⚖️ Sorumluluk Reddi (Disclaimer)
+## ⚖️ Legal Disclaimer
 
-Bu yazılım yalnızca **eğitim, araştırma ve kişisel arşivleme** amaçlarıyla geliştirilmiştir. 
-Yazılımın kullanılmasıyla indirilen veya dönüştürülen materyallerin telif hakkı ve kullanım şartlarına uygunluğundan **tamamen son kullanıcı sorumludur**. Geliştiriciler, üçüncü taraf platformların veya telifli içeriklerin izinsiz kullanımından sorumlu tutulamaz.
+This software is developed strictly for **educational, research, and personal archiving purposes**.
+The end user is solely responsible for ensuring compliance with copyright laws, intellectual property rights, and terms of service of third-party platforms. The developers assume no liability for misuse of this tool.
 
 ---
 
-## 📄 Lisans
+## 📄 License
 
-Bu proje [MIT Lisansı](LICENSE) altında lisanslanmıştır.
+This project is licensed under the [MIT License](LICENSE).

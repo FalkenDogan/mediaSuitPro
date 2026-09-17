@@ -68,9 +68,9 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("MediaSuite Pro - Downloader, Cutter & Converter");
+        primaryStage.setTitle("MediaSuite Pro - Media Downloader, Cutter & Converter");
 
-        // Main layout VBox
+        // Main layout root
         VBox root = new VBox();
         root.getStyleClass().add("root");
 
@@ -82,7 +82,7 @@ public class App extends Application {
 
         Label headerTitle = new Label("🚀 MediaSuite Pro");
         headerTitle.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #cba6f7;");
-        Label headerSub = new Label("  |  İndirici, Tıraşlayıcı & Format Dönüştürücü");
+        Label headerSub = new Label("  |  Downloader, Trimmer & Format Converter");
         headerSub.setStyle("-fx-font-size: 14px; -fx-text-fill: #bac2de;");
 
         header.getChildren().addAll(headerTitle, headerSub);
@@ -93,54 +93,54 @@ public class App extends Application {
         VBox.setVgrow(tabPane, Priority.ALWAYS);
 
         // ==================== TAB 1: DOWNLOADER ====================
-        Tab tabDownload = new Tab("Medya İndirici");
+        Tab tabDownload = new Tab("Media Downloader");
         ScrollPane scrollDownload = new ScrollPane();
         scrollDownload.setFitToWidth(true);
-        
+
         VBox dlContainer = new VBox(20);
         dlContainer.getStyleClass().add("container");
 
         VBox dlCard = new VBox(15);
         dlCard.getStyleClass().add("card");
 
-        Label dlCardTitle = new Label("Medya İndirme Paneli");
+        Label dlCardTitle = new Label("Media Download Panel");
         dlCardTitle.getStyleClass().add("title-label");
 
-        Label urlLabel = new Label("Medya veya Sayfa Linki:");
+        Label urlLabel = new Label("Media or Web Page URL:");
         urlLabel.getStyleClass().add("form-label");
 
         linkField = new TextField();
-        linkField.setPromptText("İndirmek istediğiniz linki yapıştırın (örn. YouTube, Twitter, Bluesky vb.)...");
+        linkField.setPromptText("Paste link here (e.g. YouTube, Twitter/X, Bluesky, web page)...");
 
-        Label typeLabel = new Label("İndirme Türü Seçin:");
+        Label typeLabel = new Label("Select Download Type:");
         typeLabel.getStyleClass().add("form-label");
 
         ToggleGroup typeGroup = new ToggleGroup();
-        rbVideo = new RadioButton("Video İndir (MP4)");
+        rbVideo = new RadioButton("Video (MP4)");
         rbVideo.setToggleGroup(typeGroup);
         rbVideo.setSelected(true);
 
-        rbAudio = new RadioButton("Ses İndir (MP3)");
+        rbAudio = new RadioButton("Audio (MP3)");
         rbAudio.setToggleGroup(typeGroup);
 
-        rbScript = new RadioButton("Script / Transkript (.srt & .txt)");
+        rbScript = new RadioButton("Script / Transcript (.srt & .txt)");
         rbScript.setToggleGroup(typeGroup);
 
-        rbImage = new RadioButton("Resimleri İndir (Web Sayfası)");
+        rbImage = new RadioButton("Images (Web Page)");
         rbImage.setToggleGroup(typeGroup);
 
         HBox typeBox = new HBox(15, rbVideo, rbAudio, rbScript, rbImage);
         typeBox.setPadding(new Insets(5, 0, 5, 0));
 
-        downloadButton = new Button("İndirmeyi Başlat");
+        downloadButton = new Button("Start Download");
         downloadButton.setMaxWidth(Double.MAX_VALUE);
 
         progressBar = new ProgressBar(0.0);
         progressBar.setMaxWidth(Double.MAX_VALUE);
 
-        Label statusTitle = new Label("Durum:");
+        Label statusTitle = new Label("Status:");
         statusTitle.getStyleClass().add("form-label");
-        statusLabel = new Label("Hazır");
+        statusLabel = new Label("Ready");
         statusLabel.setStyle("-fx-text-fill: #a6e3a1; -fx-font-weight: bold;");
 
         HBox statusBox = new HBox(10, statusTitle, statusLabel);
@@ -149,7 +149,7 @@ public class App extends Application {
         logArea = new TextArea();
         logArea.setEditable(false);
         logArea.setWrapText(true);
-        logArea.setPromptText("İndirme ve dönüştürme logları burada akacaktır...");
+        logArea.setPromptText("Download and processing logs will stream here...");
         VBox.setVgrow(logArea, Priority.ALWAYS);
 
         dlCard.getChildren().addAll(
@@ -166,7 +166,7 @@ public class App extends Application {
         tabDownload.setContent(scrollDownload);
 
         // ==================== TAB 2: CUTTER/TRIMMER ====================
-        Tab tabCut = new Tab("Medya Kesici (Tıraşlama)");
+        Tab tabCut = new Tab("Media Cutter (Trimmer)");
         ScrollPane scrollCut = new ScrollPane();
         scrollCut.setFitToWidth(true);
 
@@ -176,17 +176,17 @@ public class App extends Application {
         VBox cutCard = new VBox(15);
         cutCard.getStyleClass().add("card");
 
-        Label cutCardTitle = new Label("Medya Kesme & Tıraşlama Paneli");
+        Label cutCardTitle = new Label("Media Cutting & Trimming Panel");
         cutCardTitle.getStyleClass().add("title-label");
 
-        Label fileLabel = new Label("Dosya Seçin:");
+        Label fileLabel = new Label("Select Media File:");
         fileLabel.getStyleClass().add("form-label");
 
         filePathField = new TextField();
         filePathField.setEditable(false);
-        filePathField.setPromptText("Makinenizdeki bir video/ses dosyasını seçin...");
-        
-        browseButton = new Button("Dosya Seç");
+        filePathField.setPromptText("Choose a video or audio file from your local storage...");
+
+        browseButton = new Button("Browse File");
         browseButton.getStyleClass().add("button-secondary");
 
         HBox fileSelectBox = new HBox(10, filePathField, browseButton);
@@ -203,31 +203,31 @@ public class App extends Application {
         col2.setPercentWidth(50);
         timesGrid.getColumnConstraints().addAll(col1, col2);
 
-        Label startLabel = new Label("Den İtibaren (Başlangıç):");
+        Label startLabel = new Label("From (Start Time):");
         startLabel.getStyleClass().add("form-label");
         startTimeField = new TextField("00:00:00");
-        startTimeField.setPromptText("saat:dakika:saniye (örn. 00:01:30)");
+        startTimeField.setPromptText("hh:mm:ss (e.g. 00:01:30) or seconds");
 
-        Label endLabel = new Label("E Kadar (Bitiş):");
+        Label endLabel = new Label("To (End Time):");
         endLabel.getStyleClass().add("form-label");
         endTimeField = new TextField("00:00:00");
-        endTimeField.setPromptText("saat:dakika:saniye (örn. 00:02:15)");
+        endTimeField.setPromptText("hh:mm:ss (e.g. 00:02:15) or seconds");
 
         timesGrid.add(startLabel, 0, 0);
         timesGrid.add(startTimeField, 0, 1);
         timesGrid.add(endLabel, 1, 0);
         timesGrid.add(endTimeField, 1, 1);
 
-        trimToMp4CheckBox = new CheckBox("Çıktıyı Evrensel MP4 Formatına Dönüştür (.mp4)");
+        trimToMp4CheckBox = new CheckBox("Convert output to universal MP4 format (.mp4)");
         trimToMp4CheckBox.setSelected(true);
         trimToMp4CheckBox.setStyle("-fx-text-fill: #cdd6f4; -fx-font-size: 13px;");
 
-        trimButton = new Button("Tıraşlamayı Başlat");
+        trimButton = new Button("Start Trimming");
         trimButton.setMaxWidth(Double.MAX_VALUE);
 
-        Label trimStatusTitle = new Label("Durum:");
+        Label trimStatusTitle = new Label("Status:");
         trimStatusTitle.getStyleClass().add("form-label");
-        trimStatusLabel = new Label("Hazır");
+        trimStatusLabel = new Label("Ready");
         trimStatusLabel.setStyle("-fx-text-fill: #a6e3a1; -fx-font-weight: bold;");
 
         HBox trimStatusBox = new HBox(10, trimStatusTitle, trimStatusLabel);
@@ -236,7 +236,7 @@ public class App extends Application {
         trimLogArea = new TextArea();
         trimLogArea.setEditable(false);
         trimLogArea.setWrapText(true);
-        trimLogArea.setPromptText("FFmpeg tıraşlama logları burada akacaktır...");
+        trimLogArea.setPromptText("FFmpeg trimming logs will stream here...");
         VBox.setVgrow(trimLogArea, Priority.ALWAYS);
 
         cutCard.getChildren().addAll(
@@ -253,7 +253,7 @@ public class App extends Application {
         tabCut.setContent(scrollCut);
 
         // ==================== TAB 3: FORMAT CONVERTER ====================
-        Tab tabConvert = new Tab("Format Dönüştürücü");
+        Tab tabConvert = new Tab("Format Converter");
         ScrollPane scrollConvert = new ScrollPane();
         scrollConvert.setFitToWidth(true);
 
@@ -263,51 +263,51 @@ public class App extends Application {
         VBox convCard = new VBox(15);
         convCard.getStyleClass().add("card");
 
-        Label convCardTitle = new Label("Medya Format Dönüştürme Paneli");
+        Label convCardTitle = new Label("Media Format Conversion Panel");
         convCardTitle.getStyleClass().add("title-label");
 
-        Label convFileLabel = new Label("Dönüştürülecek Medya Dosyası (MKV, WebM, AVI, MOV, MP4, MP3 vb.):");
+        Label convFileLabel = new Label("Select Media File (MKV, WebM, AVI, MOV, MP4, MP3, etc.):");
         convFileLabel.getStyleClass().add("form-label");
 
         convFilePathField = new TextField();
         convFilePathField.setEditable(false);
-        convFilePathField.setPromptText("Makinenizdeki dönüştürülecek bir medya dosyasını seçin...");
+        convFilePathField.setPromptText("Choose a media file to convert...");
 
-        convBrowseButton = new Button("Dosya Seç");
+        convBrowseButton = new Button("Browse File");
         convBrowseButton.getStyleClass().add("button-secondary");
 
         HBox convFileSelectBox = new HBox(10, convFilePathField, convBrowseButton);
         HBox.setHgrow(convFilePathField, Priority.ALWAYS);
 
-        Label convTargetLabel = new Label("Hedef Format Seçin:");
+        Label convTargetLabel = new Label("Select Target Format:");
         convTargetLabel.getStyleClass().add("form-label");
 
         ToggleGroup convGroup = new ToggleGroup();
-        rbConvMp4 = new RadioButton("MP4 Video (H.264/AAC - İnternet Uyumlu)");
+        rbConvMp4 = new RadioButton("MP4 Video (H.264/AAC - Web Compatible)");
         rbConvMp4.setToggleGroup(convGroup);
         rbConvMp4.setSelected(true);
 
-        rbConvMp3 = new RadioButton("MP3 Ses (320 kbps)");
+        rbConvMp3 = new RadioButton("MP3 Audio (320 kbps)");
         rbConvMp3.setToggleGroup(convGroup);
 
         rbConvWebm = new RadioButton("WebM Video");
         rbConvWebm.setToggleGroup(convGroup);
 
-        rbConvWav = new RadioButton("WAV Ses (Kayıpsız)");
+        rbConvWav = new RadioButton("WAV Audio (Lossless)");
         rbConvWav.setToggleGroup(convGroup);
 
         HBox convTypeBox = new HBox(15, rbConvMp4, rbConvMp3, rbConvWebm, rbConvWav);
         convTypeBox.setPadding(new Insets(5, 0, 5, 0));
 
-        convButton = new Button("Dönüştürmeyi Başlat");
+        convButton = new Button("Start Conversion");
         convButton.setMaxWidth(Double.MAX_VALUE);
 
         convProgressBar = new ProgressBar(0.0);
         convProgressBar.setMaxWidth(Double.MAX_VALUE);
 
-        Label convStatusTitle = new Label("Durum:");
+        Label convStatusTitle = new Label("Status:");
         convStatusTitle.getStyleClass().add("form-label");
-        convStatusLabel = new Label("Hazır");
+        convStatusLabel = new Label("Ready");
         convStatusLabel.setStyle("-fx-text-fill: #a6e3a1; -fx-font-weight: bold;");
 
         HBox convStatusBox = new HBox(10, convStatusTitle, convStatusLabel);
@@ -316,7 +316,7 @@ public class App extends Application {
         convLogArea = new TextArea();
         convLogArea.setEditable(false);
         convLogArea.setWrapText(true);
-        convLogArea.setPromptText("FFmpeg dönüştürme logları burada akacaktır...");
+        convLogArea.setPromptText("FFmpeg conversion logs will stream here...");
         VBox.setVgrow(convLogArea, Priority.ALWAYS);
 
         convCard.getChildren().addAll(
@@ -337,22 +337,22 @@ public class App extends Application {
 
         root.getChildren().addAll(header, tabPane);
 
-        Scene scene = new Scene(root, 750, 680);
-        
-        // Load external CSS resource
+        Scene scene = new Scene(root, 780, 700);
+
+        // Load CSS resource
         try {
             scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         } catch (Exception ex) {
-            System.err.println("CSS dosyası yüklenemedi: " + ex.getMessage());
+            System.err.println("Failed to load CSS stylesheet: " + ex.getMessage());
         }
 
-        // ==================== EVENTS ====================
-        
+        // ==================== EVENT HANDLERS ====================
+
         // Tab 1 Download Action
         downloadButton.setOnAction(e -> {
             String link = linkField.getText().trim();
             if (link.isEmpty()) {
-                showError("Hata", "Lütfen geçerli bir medya linki girin.");
+                showError("Error", "Please enter a valid media URL.");
                 return;
             }
 
@@ -364,7 +364,7 @@ public class App extends Application {
             setDownloadUIState(true);
             progressBar.setProgress(0);
             logArea.clear();
-            statusLabel.setText("İşlem başlatıldı...");
+            statusLabel.setText("Starting process...");
 
             Task<Void> downloadTask = new Task<>() {
                 @Override
@@ -384,8 +384,8 @@ public class App extends Application {
 
             downloadTask.setOnFailed(event -> {
                 Throwable ex = downloadTask.getException();
-                logArea.appendText("\n[HATA] Beklenmedik bir hata oluştu: " + ex.getMessage() + "\n");
-                statusLabel.setText("Hata oluştu.");
+                logArea.appendText("\n[ERROR] An unexpected error occurred: " + ex.getMessage() + "\n");
+                statusLabel.setText("Error occurred.");
                 setDownloadUIState(false);
             });
 
@@ -399,10 +399,10 @@ public class App extends Application {
         // Tab 2 File Selector Action
         browseButton.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Kesilecek Medya Dosyasını Seçin");
+            fileChooser.setTitle("Select Media File to Cut");
             fileChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("Medya Dosyaları", "*.mp4", "*.webm", "*.mkv", "*.avi", "*.mp3", "*.wav", "*.m4a"),
-                    new FileChooser.ExtensionFilter("Tüm Dosyalar", "*.*")
+                    new FileChooser.ExtensionFilter("Media Files", "*.mp4", "*.webm", "*.mkv", "*.avi", "*.mov", "*.mp3", "*.wav", "*.m4a", "*.flac", "*.ogg"),
+                    new FileChooser.ExtensionFilter("All Files", "*.*")
             );
             File selectedFile = fileChooser.showOpenDialog(primaryStage);
             if (selectedFile != null) {
@@ -414,7 +414,7 @@ public class App extends Application {
         trimButton.setOnAction(e -> {
             String filePath = filePathField.getText().trim();
             if (filePath.isEmpty()) {
-                showError("Hata", "Lütfen tıraşlanacak bir medya dosyası seçin.");
+                showError("Error", "Please select a media file to trim.");
                 return;
             }
 
@@ -422,7 +422,7 @@ public class App extends Application {
             String endTime = endTimeField.getText().trim();
 
             if (startTime.isEmpty() || endTime.isEmpty()) {
-                showError("Hata", "Başlangıç ve bitiş zaman kodları boş olamaz.");
+                showError("Error", "Start and end time codes cannot be empty.");
                 return;
             }
 
@@ -431,19 +431,19 @@ public class App extends Application {
                 startSec = timeToSeconds(startTime);
                 endSec = timeToSeconds(endTime);
             } catch (Exception ex) {
-                showError("Hata", "Zaman formatı geçersiz. Örnek formatlar:\n- 00:01:30 (saat:dakika:saniye)\n- 90 (saniye)");
+                showError("Error", "Invalid time format. Example formats:\n- 00:01:30 (hh:mm:ss)\n- 90 (seconds)");
                 return;
             }
 
             if (startSec < 0) startSec = 0;
             if (endSec <= startSec) {
-                showError("Hata", "Bitiş zamanı (" + endTime + "), başlangıç zamanından (" + startTime + ") büyük olmalıdır.");
+                showError("Error", "End time (" + endTime + ") must be greater than start time (" + startTime + ").");
                 return;
             }
 
             setTrimUIState(true);
             trimLogArea.clear();
-            trimStatusLabel.setText("İşlem başlatıldı...");
+            trimStatusLabel.setText("Starting process...");
 
             double finalStartSec = startSec;
             double finalEndSec = endSec;
@@ -458,8 +458,8 @@ public class App extends Application {
 
             trimTask.setOnFailed(event -> {
                 Throwable ex = trimTask.getException();
-                trimLogArea.appendText("\n[HATA] Beklenmedik bir hata oluştu: " + ex.getMessage() + "\n");
-                trimStatusLabel.setText("Hata oluştu.");
+                trimLogArea.appendText("\n[ERROR] An unexpected error occurred: " + ex.getMessage() + "\n");
+                trimStatusLabel.setText("Error occurred.");
                 setTrimUIState(false);
             });
 
@@ -473,12 +473,12 @@ public class App extends Application {
         // Tab 3 File Selector Action
         convBrowseButton.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Dönüştürülecek Medya Dosyasını Seçin");
+            fileChooser.setTitle("Select Media File to Convert");
             fileChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("Tüm Medya Dosyaları", "*.mkv", "*.webm", "*.mp4", "*.avi", "*.mov", "*.flv", "*.ts", "*.m4v", "*.wmv", "*.mp3", "*.wav", "*.m4a", "*.aac", "*.flac", "*.ogg"),
-                    new FileChooser.ExtensionFilter("Video Dosyaları", "*.mkv", "*.webm", "*.mp4", "*.avi", "*.mov", "*.flv", "*.ts", "*.m4v", "*.wmv"),
-                    new FileChooser.ExtensionFilter("Ses Dosyaları", "*.mp3", "*.wav", "*.m4a", "*.aac", "*.flac", "*.ogg"),
-                    new FileChooser.ExtensionFilter("Tüm Dosyalar", "*.*")
+                    new FileChooser.ExtensionFilter("All Media Files", "*.mkv", "*.webm", "*.mp4", "*.avi", "*.mov", "*.flv", "*.ts", "*.m4v", "*.wmv", "*.mp3", "*.wav", "*.m4a", "*.aac", "*.flac", "*.ogg"),
+                    new FileChooser.ExtensionFilter("Video Files", "*.mkv", "*.webm", "*.mp4", "*.avi", "*.mov", "*.flv", "*.ts", "*.m4v", "*.wmv"),
+                    new FileChooser.ExtensionFilter("Audio Files", "*.mp3", "*.wav", "*.m4a", "*.aac", "*.flac", "*.ogg"),
+                    new FileChooser.ExtensionFilter("All Files", "*.*")
             );
             File selectedFile = fileChooser.showOpenDialog(primaryStage);
             if (selectedFile != null) {
@@ -490,7 +490,7 @@ public class App extends Application {
         convButton.setOnAction(e -> {
             String filePath = convFilePathField.getText().trim();
             if (filePath.isEmpty()) {
-                showError("Hata", "Lütfen dönüştürülecek bir medya dosyası seçin.");
+                showError("Error", "Please select a media file to convert.");
                 return;
             }
 
@@ -502,7 +502,7 @@ public class App extends Application {
             final String finalTargetFormat = targetFormat;
             setConvertUIState(true);
             convLogArea.clear();
-            convStatusLabel.setText("İşlem başlatıldı...");
+            convStatusLabel.setText("Starting process...");
             convProgressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
 
             Task<Void> convTask = new Task<>() {
@@ -515,8 +515,8 @@ public class App extends Application {
 
             convTask.setOnFailed(event -> {
                 Throwable ex = convTask.getException();
-                convLogArea.appendText("\n[HATA] Beklenmedik bir hata oluştu: " + ex.getMessage() + "\n");
-                convStatusLabel.setText("Hata oluştu.");
+                convLogArea.appendText("\n[ERROR] An unexpected error occurred: " + ex.getMessage() + "\n");
+                convStatusLabel.setText("Error occurred.");
                 convProgressBar.setProgress(0);
                 setConvertUIState(false);
             });
@@ -564,20 +564,21 @@ public class App extends Application {
         });
     }
 
-    // Downloader helper methods
+    // ==================== DOWNLOADER METHODS ====================
+
     private void downloadVideo(String link) throws Exception {
         Path downloadDir = getDownloadDirectory();
         Files.createDirectories(downloadDir);
         Path ytDlpPath = resolveExecutablePath("yt-dlp.exe");
 
         if (!Files.exists(ytDlpPath)) {
-            throw new FileNotFoundException("yt-dlp.exe dosyası bulunamadı. Lütfen program veya uygulama klasöründe olduğundan emin olun.");
+            throw new FileNotFoundException("yt-dlp.exe was not found. Please ensure it is in the application directory.");
         }
 
         String normalizedLink = normalizeYouTubeLink(link);
         Platform.runLater(() -> {
-            statusLabel.setText("İndiriliyor (Video)...");
-            logArea.appendText("İndirme işlemi başlatılıyor: " + normalizedLink + "\n");
+            statusLabel.setText("Downloading (Video)...");
+            logArea.appendText("Starting video download: " + normalizedLink + "\n");
         });
 
         ProcessBuilder pb = new ProcessBuilder(
@@ -598,7 +599,6 @@ public class App extends Application {
                 final String finalLine = line;
                 Platform.runLater(() -> logArea.appendText(finalLine + "\n"));
 
-                // Parse progress from yt-dlp output
                 if (line.contains("[download]") && line.contains("%")) {
                     Pattern p = Pattern.compile("(\\d+(\\.\\d+)?)%");
                     Matcher m = p.matcher(line);
@@ -617,13 +617,13 @@ public class App extends Application {
         int exitCode = process.waitFor();
         Platform.runLater(() -> {
             if (exitCode == 0) {
-                statusLabel.setText("Başarılı! Video indirildi.");
+                statusLabel.setText("Success! Video downloaded.");
                 progressBar.setProgress(1.0);
-                logArea.appendText("\n[BAŞARILI] Video indirme tamamlandı!\nDosya '" + downloadDir.toAbsolutePath() + "' klasörüne kaydedildi.\n");
+                logArea.appendText("\n[SUCCESS] Video download completed!\nSaved to: '" + downloadDir.toAbsolutePath() + "'\n");
             } else {
-                statusLabel.setText("Hata! İndirme başarısız.");
+                statusLabel.setText("Failed! Download error.");
                 progressBar.setProgress(0);
-                logArea.appendText("\n[HATA] yt-dlp hata kodu döndürdü: " + exitCode + "\n");
+                logArea.appendText("\n[ERROR] yt-dlp exited with error code: " + exitCode + "\n");
             }
         });
     }
@@ -634,13 +634,13 @@ public class App extends Application {
         Path ytDlpPath = resolveExecutablePath("yt-dlp.exe");
 
         if (!Files.exists(ytDlpPath)) {
-            throw new FileNotFoundException("yt-dlp.exe dosyası bulunamadı. Lütfen program veya uygulama klasöründe olduğundan emin olun.");
+            throw new FileNotFoundException("yt-dlp.exe was not found. Please ensure it is in the application directory.");
         }
 
         String normalizedLink = normalizeYouTubeLink(link);
         Platform.runLater(() -> {
-            statusLabel.setText("İndiriliyor (Ses/MP3)...");
-            logArea.appendText("İndirme ve MP3 dönüştürme başlatılıyor: " + normalizedLink + "\n");
+            statusLabel.setText("Downloading (Audio/MP3)...");
+            logArea.appendText("Starting audio extraction: " + normalizedLink + "\n");
         });
 
         ProcessBuilder pb = new ProcessBuilder(
@@ -662,7 +662,6 @@ public class App extends Application {
                 final String finalLine = line;
                 Platform.runLater(() -> logArea.appendText(finalLine + "\n"));
 
-                // Parse progress from yt-dlp output
                 if (line.contains("[download]") && line.contains("%")) {
                     Pattern p = Pattern.compile("(\\d+(\\.\\d+)?)%");
                     Matcher m = p.matcher(line);
@@ -681,81 +680,15 @@ public class App extends Application {
         int exitCode = process.waitFor();
         Platform.runLater(() -> {
             if (exitCode == 0) {
-                statusLabel.setText("Başarılı! MP3 indirildi.");
+                statusLabel.setText("Success! MP3 downloaded.");
                 progressBar.setProgress(1.0);
-                logArea.appendText("\n[BAŞARILI] MP3 indirme ve dönüştürme tamamlandı!\nDosya '" + downloadDir.toAbsolutePath() + "' klasörüne kaydedildi.\n");
+                logArea.appendText("\n[SUCCESS] Audio download and conversion completed!\nSaved to: '" + downloadDir.toAbsolutePath() + "'\n");
             } else {
-                statusLabel.setText("Hata! İndirme başarısız.");
+                statusLabel.setText("Failed! Audio download error.");
                 progressBar.setProgress(0);
-                logArea.appendText("\n[HATA] yt-dlp hata kodu döndürdü: " + exitCode + "\n");
+                logArea.appendText("\n[ERROR] yt-dlp exited with error code: " + exitCode + "\n");
             }
         });
-    }
-
-    private void downloadImages(String url) throws Exception {
-        Path downloadDir = getDownloadDirectory().resolve("resim_indirilenler");
-        Files.createDirectories(downloadDir);
-
-        Platform.runLater(() -> {
-            statusLabel.setText("Sayfaya bağlanılıyor...");
-            logArea.appendText("JSoup ile bağlanılıyor: " + url + "\n");
-        });
-
-        Document doc = Jsoup.connect(url)
-                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                .timeout(15000)
-                .get();
-
-        Elements images = doc.select("img");
-        int total = images.size();
-        Platform.runLater(() -> logArea.appendText("Bulunan resim sayısı: " + total + "\n"));
-
-        if (total == 0) {
-            Platform.runLater(() -> {
-                statusLabel.setText("Resim bulunamadı.");
-                progressBar.setProgress(1.0);
-                logArea.appendText("\n[UYARI] Sayfada indirilecek resim (img etiketi) bulunamadı.\n");
-            });
-            return;
-        }
-
-        int count = 0;
-        for (Element img : images) {
-            String imgUrl = img.absUrl("src");
-            if (!imgUrl.isEmpty()) {
-                count++;
-                final int currentCount = count;
-                final String finalImgUrl = imgUrl;
-                Platform.runLater(() -> logArea.appendText("[" + currentCount + "/" + total + "] İndiriliyor: " + finalImgUrl + "\n"));
-
-                try {
-                    downloadFile(imgUrl, downloadDir.resolve("resim_" + currentCount + ".jpg").toString());
-                } catch (IOException e) {
-                    Platform.runLater(() -> logArea.appendText("[HATA] İndirilemedi: " + finalImgUrl + " - " + e.getMessage() + "\n"));
-                }
-
-                final double progress = (double) currentCount / total;
-                Platform.runLater(() -> progressBar.setProgress(progress));
-            }
-        }
-
-        final int finalCount = count;
-        Platform.runLater(() -> {
-            statusLabel.setText("Başarılı! Resimler indirildi.");
-            logArea.appendText("\n[BAŞARILI] Toplam " + finalCount + " resim '" + downloadDir.toAbsolutePath() + "' klasörüne indirildi.\n");
-        });
-    }
-
-    private static void downloadFile(String fileUrl, String fileName) throws IOException {
-        try (BufferedInputStream in = new BufferedInputStream(new URL(fileUrl).openStream());
-             FileOutputStream fileOutputStream = new FileOutputStream(fileName)) {
-
-            byte[] dataBuffer = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-                fileOutputStream.write(dataBuffer, 0, bytesRead);
-            }
-        }
     }
 
     private void downloadTranscript(String link) throws Exception {
@@ -764,13 +697,13 @@ public class App extends Application {
         Path ytDlpPath = resolveExecutablePath("yt-dlp.exe");
 
         if (!Files.exists(ytDlpPath)) {
-            throw new FileNotFoundException("yt-dlp.exe dosyası bulunamadı. Lütfen program veya uygulama klasöründe olduğundan emin olun.");
+            throw new FileNotFoundException("yt-dlp.exe was not found. Please ensure it is in the application directory.");
         }
 
         String normalizedLink = normalizeYouTubeLink(link);
         Platform.runLater(() -> {
-            statusLabel.setText("Script/Transkript çekiliyor...");
-            logArea.appendText("Transkript indirme başlatılıyor: " + normalizedLink + "\n");
+            statusLabel.setText("Extracting Script/Transcript...");
+            logArea.appendText("Starting transcript download: " + normalizedLink + "\n");
         });
 
         ProcessBuilder pb = new ProcessBuilder(
@@ -796,7 +729,6 @@ public class App extends Application {
                 final String finalLine = line;
                 Platform.runLater(() -> logArea.appendText(finalLine + "\n"));
 
-                // Parse progress
                 if (line.contains("[download]") && line.contains("%")) {
                     Pattern p = Pattern.compile("(\\d+(\\.\\d+)?)%");
                     Matcher m = p.matcher(line);
@@ -824,20 +756,20 @@ public class App extends Application {
                 }
             }
         } catch (Exception ex) {
-            Platform.runLater(() -> logArea.appendText("[UYARI] Metin dönüştürme uyarısı: " + ex.getMessage() + "\n"));
+            Platform.runLater(() -> logArea.appendText("[WARNING] Text conversion notice: " + ex.getMessage() + "\n"));
         }
 
         final int totalConverted = convertedCount;
         Platform.runLater(() -> {
             if (exitCode == 0 || totalConverted > 0) {
-                statusLabel.setText("Başarılı! Script(ler) indirildi.");
+                statusLabel.setText("Success! Script(s) downloaded.");
                 progressBar.setProgress(1.0);
-                logArea.appendText("\n[BAŞARILI] Script / Transkript çekme tamamlandı!\n"
-                        + "Altyazı (.srt) ve temiz metin (.txt) dosyaları '" + downloadDir.toAbsolutePath() + "' klasörüne kaydedildi.\n");
+                logArea.appendText("\n[SUCCESS] Script / Transcript extraction completed!\n"
+                        + "Subtitle (.srt) and clean text (.txt) files saved to: '" + downloadDir.toAbsolutePath() + "'\n");
             } else {
-                statusLabel.setText("Hata! Script indirilemedi.");
+                statusLabel.setText("Failed! No transcript found.");
                 progressBar.setProgress(0);
-                logArea.appendText("\n[HATA] yt-dlp hata kodu döndürdü veya videoda altyazı/transkript bulunamadı. Çıkış kodu: " + exitCode + "\n");
+                logArea.appendText("\n[ERROR] yt-dlp exited with code: " + exitCode + " or no subtitles were available.\n");
             }
         });
     }
@@ -881,6 +813,72 @@ public class App extends Application {
         }
     }
 
+    private void downloadImages(String url) throws Exception {
+        Path downloadDir = getDownloadDirectory().resolve("images");
+        Files.createDirectories(downloadDir);
+
+        Platform.runLater(() -> {
+            statusLabel.setText("Connecting to web page...");
+            logArea.appendText("Connecting via Jsoup: " + url + "\n");
+        });
+
+        Document doc = Jsoup.connect(url)
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                .timeout(15000)
+                .get();
+
+        Elements images = doc.select("img");
+        int total = images.size();
+        Platform.runLater(() -> logArea.appendText("Found images count: " + total + "\n"));
+
+        if (total == 0) {
+            Platform.runLater(() -> {
+                statusLabel.setText("No images found.");
+                progressBar.setProgress(1.0);
+                logArea.appendText("\n[NOTICE] No downloadable images found on the page.\n");
+            });
+            return;
+        }
+
+        int count = 0;
+        for (Element img : images) {
+            String imgUrl = img.absUrl("src");
+            if (!imgUrl.isEmpty()) {
+                count++;
+                final int currentCount = count;
+                final String finalImgUrl = imgUrl;
+                Platform.runLater(() -> logArea.appendText("[" + currentCount + "/" + total + "] Downloading: " + finalImgUrl + "\n"));
+
+                try {
+                    downloadFile(imgUrl, downloadDir.resolve("image_" + currentCount + ".jpg").toString());
+                } catch (IOException e) {
+                    Platform.runLater(() -> logArea.appendText("[ERROR] Failed to download: " + finalImgUrl + " - " + e.getMessage() + "\n"));
+                }
+
+                final double progress = (double) currentCount / total;
+                Platform.runLater(() -> progressBar.setProgress(progress));
+            }
+        }
+
+        final int finalCount = count;
+        Platform.runLater(() -> {
+            statusLabel.setText("Success! Images downloaded.");
+            logArea.appendText("\n[SUCCESS] Total " + finalCount + " images saved to: '" + downloadDir.toAbsolutePath() + "'\n");
+        });
+    }
+
+    private static void downloadFile(String fileUrl, String fileName) throws IOException {
+        try (BufferedInputStream in = new BufferedInputStream(new URL(fileUrl).openStream());
+             FileOutputStream fileOutputStream = new FileOutputStream(fileName)) {
+
+            byte[] dataBuffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                fileOutputStream.write(dataBuffer, 0, bytesRead);
+            }
+        }
+    }
+
     private String normalizeYouTubeLink(String link) {
         String shortsPrefix = "https://www.youtube.com/shorts/";
         if (link != null && link.startsWith(shortsPrefix)) {
@@ -900,14 +898,15 @@ public class App extends Application {
         return link;
     }
 
-    // Trimmer helper methods
-    private void runTrim(String dosyaYolu, double saniyedenItibaren, double saniyeyeKadar) throws Exception {
-        Path inputPath = Paths.get(dosyaYolu);
+    // ==================== TRIMMER METHODS ====================
+
+    private void runTrim(String filePath, double startSeconds, double endSeconds) throws Exception {
+        Path inputPath = Paths.get(filePath);
         if (!Files.exists(inputPath) || Files.isDirectory(inputPath)) {
-            throw new FileNotFoundException("Seçilen medya dosyası bulunamadı: " + dosyaYolu);
+            throw new FileNotFoundException("Selected media file not found: " + filePath);
         }
 
-        double duration = saniyeyeKadar - saniyedenItibaren;
+        double duration = endSeconds - startSeconds;
 
         Path parent = inputPath.getParent();
         if (parent == null) parent = Paths.get(".");
@@ -933,7 +932,7 @@ public class App extends Application {
 
         Path ffmpegPath = resolveExecutablePath("ffmpeg.exe");
         if (!Files.exists(ffmpegPath)) {
-            throw new FileNotFoundException("ffmpeg.exe dosyası bulunamadı. Lütfen program veya uygulama klasöründe olduğundan emin olun.");
+            throw new FileNotFoundException("ffmpeg.exe was not found. Please ensure it is in the application directory.");
         }
 
         List<String> cmd;
@@ -942,7 +941,7 @@ public class App extends Application {
             cmd = List.of(
                     ffmpegPath.toString(),
                     "-y",
-                    "-ss", String.valueOf(saniyedenItibaren),
+                    "-ss", String.valueOf(startSeconds),
                     "-i", inputPath.toString(),
                     "-t", String.valueOf(duration),
                     "-c:v", "libx264",
@@ -958,7 +957,7 @@ public class App extends Application {
             cmd = List.of(
                     ffmpegPath.toString(),
                     "-y",
-                    "-ss", String.valueOf(saniyedenItibaren),
+                    "-ss", String.valueOf(startSeconds),
                     "-i", inputPath.toString(),
                     "-t", String.valueOf(duration),
                     "-c", "copy",
@@ -967,8 +966,8 @@ public class App extends Application {
         }
 
         Platform.runLater(() -> {
-            trimStatusLabel.setText("Medya tıraşlanıyor...");
-            trimLogArea.appendText("FFmpeg Başlatılıyor...\nKomut: " + String.join(" ", cmd) + "\n\n");
+            trimStatusLabel.setText("Trimming media...");
+            trimLogArea.appendText("Starting FFmpeg...\nCommand: " + String.join(" ", cmd) + "\n\n");
         });
 
         ProcessBuilder pb = new ProcessBuilder(cmd);
@@ -987,20 +986,21 @@ public class App extends Application {
         Path finalOutPath = outPath;
         Platform.runLater(() -> {
             if (exitCode == 0) {
-                trimStatusLabel.setText("Başarılı! Tıraşlama tamamlandı.");
-                trimLogArea.appendText("\n[BAŞARILI] Medya başarıyla tıraşlandı!\nYeni Dosya: " + finalOutPath.toAbsolutePath() + "\n");
+                trimStatusLabel.setText("Success! Media trimmed.");
+                trimLogArea.appendText("\n[SUCCESS] Media trimmed successfully!\nSaved to: " + finalOutPath.toAbsolutePath() + "\n");
             } else {
-                trimStatusLabel.setText("Hata! İşlem başarısız.");
-                trimLogArea.appendText("\n[HATA] FFmpeg hata kodu döndürdü: " + exitCode + "\n");
+                trimStatusLabel.setText("Failed! Trimming error.");
+                trimLogArea.appendText("\n[ERROR] FFmpeg exited with code: " + exitCode + "\n");
             }
         });
     }
 
-    // Converter helper methods
-    private void runConvert(String dosyaYolu, String targetFormat) throws Exception {
-        Path inputPath = Paths.get(dosyaYolu);
+    // ==================== CONVERTER METHODS ====================
+
+    private void runConvert(String filePath, String targetFormat) throws Exception {
+        Path inputPath = Paths.get(filePath);
         if (!Files.exists(inputPath) || Files.isDirectory(inputPath)) {
-            throw new FileNotFoundException("Seçilen medya dosyası bulunamadı: " + dosyaYolu);
+            throw new FileNotFoundException("Selected media file not found: " + filePath);
         }
 
         Path parent = inputPath.getParent();
@@ -1021,7 +1021,7 @@ public class App extends Application {
 
         Path ffmpegPath = resolveExecutablePath("ffmpeg.exe");
         if (!Files.exists(ffmpegPath)) {
-            throw new FileNotFoundException("ffmpeg.exe dosyası bulunamadı. Lütfen program veya uygulama klasöründe olduğundan emin olun.");
+            throw new FileNotFoundException("ffmpeg.exe was not found. Please ensure it is in the application directory.");
         }
 
         List<String> cmd;
@@ -1064,13 +1064,13 @@ public class App extends Application {
                     "-vn",
                     outPath.toString()
             );
-            default -> throw new IllegalArgumentException("Desteklenmeyen hedef format: " + targetFormat);
+            default -> throw new IllegalArgumentException("Unsupported target format: " + targetFormat);
         }
 
         Platform.runLater(() -> {
-            convStatusLabel.setText("Dönüştürülüyor (" + targetFormat.toUpperCase() + ")...");
+            convStatusLabel.setText("Converting (" + targetFormat.toUpperCase() + ")...");
             convProgressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
-            convLogArea.appendText("FFmpeg Başlatılıyor...\nKomut: " + String.join(" ", cmd) + "\n\n");
+            convLogArea.appendText("Starting FFmpeg...\nCommand: " + String.join(" ", cmd) + "\n\n");
         });
 
         ProcessBuilder pb = new ProcessBuilder(cmd);
@@ -1089,13 +1089,13 @@ public class App extends Application {
         Path finalOutPath = outPath;
         Platform.runLater(() -> {
             if (exitCode == 0) {
-                convStatusLabel.setText("Başarılı! Dönüştürme tamamlandı.");
+                convStatusLabel.setText("Success! Conversion completed.");
                 convProgressBar.setProgress(1.0);
-                convLogArea.appendText("\n[BAŞARILI] Dosya başarıyla dönüştürüldü!\nYeni Dosya: " + finalOutPath.toAbsolutePath() + "\n");
+                convLogArea.appendText("\n[SUCCESS] Media converted successfully!\nSaved to: " + finalOutPath.toAbsolutePath() + "\n");
             } else {
-                convStatusLabel.setText("Hata! İşlem başarısız.");
+                convStatusLabel.setText("Failed! Conversion error.");
                 convProgressBar.setProgress(0);
-                convLogArea.appendText("\n[HATA] FFmpeg hata kodu döndürdü: " + exitCode + "\n");
+                convLogArea.appendText("\n[ERROR] FFmpeg exited with code: " + exitCode + "\n");
             }
         });
     }
@@ -1103,8 +1103,7 @@ public class App extends Application {
     private double timeToSeconds(String time) {
         if (time == null || time.isBlank()) return 0;
         String t = time.trim();
-        // If it's only digits, treat as seconds
-        if (t.matches("^\\d+$")) {
+        if (t.matches("^\\d+(\\.\\d+)?$")) {
             return Double.parseDouble(t);
         }
         String[] parts = t.split(":");
@@ -1121,10 +1120,10 @@ public class App extends Application {
             } else if (len == 1) { // SS
                 seconds += Double.parseDouble(parts[0]);
             } else {
-                throw new IllegalArgumentException("Geçersiz zaman formatı: " + time);
+                throw new IllegalArgumentException("Invalid time format: " + time);
             }
         } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException("Zaman kodu sayıya dönüştürülemedi: " + time, ex);
+            throw new IllegalArgumentException("Could not parse time format: " + time, ex);
         }
         return seconds;
     }
@@ -1135,7 +1134,7 @@ public class App extends Application {
         if (Files.exists(path)) {
             return path;
         }
-        // 2. Check next to the jar/exe file
+        // 2. Check next to the jar/exe file location
         try {
             String jarDir = new File(App.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent();
             Path jarPath = Paths.get(jarDir, filename).toAbsolutePath().normalize();
@@ -1145,15 +1144,12 @@ public class App extends Application {
         } catch (Exception e) {
             // ignore
         }
-        // 3. Fallback
         return path;
     }
 
     private Path getDownloadDirectory() {
         try {
             File jarFile = new File(App.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-            // jarFile.getParentFile() is AppDir/app/
-            // jarFile.getParentFile().getParentFile() is AppDir
             File parentDir = jarFile.getParentFile().getParentFile();
             if (parentDir != null && parentDir.exists()) {
                 return parentDir.toPath().resolve("downloads");
