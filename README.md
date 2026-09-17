@@ -55,35 +55,42 @@ MediaSuite Pro runs seamlessly on **Windows**, **macOS**, and **Linux**.
   ```
 
 #### 🐧 Linux Setup (Ubuntu / Debian / Arch / Fedora)
-- Ubuntu / Debian:
+- **Ubuntu / Debian / Mint:**
   ```bash
-  sudo apt update && sudo apt install ffmpeg yt-dlp
+  sudo apt update && sudo apt install -y openjdk-21-jdk maven ffmpeg yt-dlp
   ```
-- Arch Linux:
+- **Arch Linux / Manjaro:**
   ```bash
-  sudo pacman -S ffmpeg yt-dlp
+  sudo pacman -S jdk-openjdk maven ffmpeg yt-dlp
   ```
-- Fedora:
+- **Fedora / RHEL:**
   ```bash
-  sudo dnf install ffmpeg yt-dlp
+  sudo dnf install java-21-openjdk maven ffmpeg yt-dlp
   ```
 
 ---
 
-### 🚀 Running the Application
+### 🚀 Running the Application (Linux / macOS / Windows)
+
+Uygulamayı çalıştırmak için proje dizininde şu komutları uygulayın:
 
 ```bash
-# Clone the repository
+# 1. Projeyi klonlayın ve klasöre girin
 git clone https://github.com/FalkenDogan/mediaSuitPro.git
 cd mediaSuitPro
 
-# Build and run with JavaFX
+# 2. JavaFX ile derleyin ve başlatın (Tüm işletim sistemlerinde geçerlidir)
 mvn javafx:run
 ```
 
-### 📦 Packaging into Executable JAR
+### 📦 Bağımsız (Executable) JAR Olarak Paketleme ve Çalıştırma
+
 ```bash
+# JAR dosyasını derleyin
 mvn clean package
+
+# Oluşan JAR'ı doğrudan çalıştırın
+java -jar target/yt-dlpProjekt-1.0-SNAPSHOT.jar
 ```
 
 ---
