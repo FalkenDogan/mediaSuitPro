@@ -27,7 +27,10 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -837,9 +840,18 @@ public class App extends Application {
         Path ffmpegPath = resolveExecutablePath("ffmpeg");
         String normalizedLink = normalizeYouTubeLink(link);
         Platform.runLater(() -> {
+            statusLabel.setStyle("-fx-text-fill: #a6e3a1; -fx-font-weight: bold;");
             statusLabel.setText("Extracting Script/Transcript...");
             logArea.appendText("Starting transcript download: " + normalizedLink + "\n");
         });
+
+        long startTime = System.currentTimeMillis();
+        Set<Path> existingSrtFiles = new HashSet<>();
+        try (var stream = Files.list(downloadDir)) {
+            stream.filter(p -> p.toString().toLowerCase().endsWith(".srt"))
+                  .forEach(existingSrtFiles::add);
+        } catch (Exception ignored) {
+        }
 
         List<String> cmd = new ArrayList<>();
         cmd.add(ytDlpPath.toString());
@@ -866,11 +878,17 @@ public class App extends Application {
         currentDownloadProcess = pb.start();
         Process process = currentDownloadProcess;
 
+        AtomicBoolean noSubsDetected = new AtomicBoolean(false);
+
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 final String finalLine = line;
                 Platform.runLater(() -> logArea.appendText(finalLine + "\n"));
+
+                if (line.contains("There are no subtitles") || line.contains("has no automatic captions") || line.contains("no subtitles were found")) {
+                    noSubsDetected.set(true);
+                }
 
                 if (line.contains("[download]") && line.contains("%")) {
                     Pattern p = Pattern.compile("(\\d+(\\.\\d+)?)%");
@@ -896,36 +914,59 @@ public class App extends Application {
         currentDownloadProcess = null;
         final int finalTranscriptExitCode = exitCode;
 
-        // Convert downloaded .srt files to clean .txt files
-        int convertedCount = 0;
+        // Check for newly downloaded .srt files
+        List<Path> newlyDownloadedSrtFiles = new ArrayList<>();
         if (!downloadCancelled) {
             try (var stream = Files.list(downloadDir)) {
-                List<Path> srtFiles = stream.filter(p -> p.toString().toLowerCase().endsWith(".srt")).toList();
-                for (Path srt : srtFiles) {
-                    if (convertSrtToCleanText(srt)) {
-                        convertedCount++;
-                    }
-                }
+                stream.filter(p -> p.toString().toLowerCase().endsWith(".srt"))
+                      .filter(p -> {
+                          try {
+                              return !existingSrtFiles.contains(p) || Files.getLastModifiedTime(p).toMillis() >= (startTime - 2000);
+                          } catch (IOException e) {
+                              return !existingSrtFiles.contains(p);
+                          }
+                      })
+                      .forEach(newlyDownloadedSrtFiles::add);
             } catch (Exception ex) {
-                Platform.runLater(() -> logArea.appendText("[WARNING] Text conversion notice: " + ex.getMessage() + "\n"));
+                Platform.runLater(() -> logArea.appendText("[WARNING] Subtitle search notice: " + ex.getMessage() + "\n"));
             }
         }
 
-        final int totalConverted = convertedCount;
+        int convertedCount = 0;
+        for (Path srt : newlyDownloadedSrtFiles) {
+            if (convertSrtToCleanText(srt)) {
+                convertedCount++;
+            }
+        }
+
+        final int newCount = newlyDownloadedSrtFiles.size();
+        final int finalConverted = convertedCount;
+        final boolean detectedNoSubs = noSubsDetected.get();
+
         Platform.runLater(() -> {
             if (downloadCancelled) {
+                statusLabel.setStyle("-fx-text-fill: #fab387; -fx-font-weight: bold;");
                 statusLabel.setText("Cancelled by user.");
                 progressBar.setProgress(0);
                 logArea.appendText("\n[CANCELLED] Script / Transcript extraction was stopped by user.\n");
-            } else if (finalTranscriptExitCode == 0 || totalConverted > 0) {
+            } else if (newCount > 0) {
+                statusLabel.setStyle("-fx-text-fill: #a6e3a1; -fx-font-weight: bold;");
                 statusLabel.setText("Success! Script(s) downloaded.");
                 progressBar.setProgress(1.0);
                 logArea.appendText("\n[SUCCESS] Script / Transcript extraction completed!\n"
-                        + "Subtitle (.srt) and clean text (.txt) files saved to: '" + downloadDir.toAbsolutePath() + "'\n");
-            } else {
-                statusLabel.setText("Failed! No transcript found.");
+                        + "Downloaded " + newCount + " subtitle file(s) and converted " + finalConverted + " to clean text.\n"
+                        + "Files saved to: '" + downloadDir.toAbsolutePath() + "'\n");
+            } else if (detectedNoSubs || finalTranscriptExitCode == 0) {
+                statusLabel.setStyle("-fx-text-fill: #fab387; -fx-font-weight: bold;");
+                statusLabel.setText("No subtitles found for this video!");
                 progressBar.setProgress(0);
-                logArea.appendText("\n[ERROR] yt-dlp exited with code: " + finalTranscriptExitCode + " or no subtitles were available.\n");
+                logArea.appendText("\n[INFO] No subtitles/transcripts found for this video.\n"
+                        + "The video does not have any subtitles or automatic captions (in requested languages: tr, en).\n");
+            } else {
+                statusLabel.setStyle("-fx-text-fill: #f38ba8; -fx-font-weight: bold;");
+                statusLabel.setText("Failed! Transcript download error.");
+                progressBar.setProgress(0);
+                logArea.appendText("\n[ERROR] yt-dlp exited with error code: " + finalTranscriptExitCode + "\n");
             }
         });
     }
@@ -936,10 +977,6 @@ public class App extends Application {
             int dot = fileName.lastIndexOf('.');
             String baseName = (dot > 0) ? fileName.substring(0, dot) : fileName;
             Path txtPath = srtFile.getParent().resolve(baseName + ".txt");
-
-            if (Files.exists(txtPath) && Files.getLastModifiedTime(txtPath).toMillis() >= Files.getLastModifiedTime(srtFile).toMillis()) {
-                return false;
-            }
 
             List<String> lines = Files.readAllLines(srtFile, StandardCharsets.UTF_8);
             StringBuilder sb = new StringBuilder();
